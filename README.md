@@ -1,0 +1,3 @@
+## cursor
+
+Initial repository setup.
