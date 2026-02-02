@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Expense Journal</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <div>
+        <h1>Expense Journal</h1>
+        <p class="subtitle">Track daily expenses in INR and keep targets on course.</p>
+      </div>
+      <div class="header-actions">
+        <button id="exportBtn" class="btn">Export</button>
+        <button id="clearBtn" class="btn btn-secondary">Clear All Data</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>Add Expense</h2>
+        <form id="expenseForm" class="form-grid">
+          <label>
+            Date
+            <input type="date" id="expenseDate" required />
+          </label>
+          <label>
+            Amount (INR)
+            <input type="number" id="expenseAmount" min="0" step="0.01" required />
+          </label>
+          <label>
+            Category
+            <select id="expenseCategory">
+              <option>Food</option>
+              <option>Transport</option>
+              <option>Housing</option>
+              <option>Utilities</option>
+              <option>Health</option>
+              <option>Shopping</option>
+              <option>Entertainment</option>
+              <option>Education</option>
+              <option>Travel</option>
+              <option>Other</option>
+            </select>
+          </label>
+          <label class="full">
+            Description
+            <input type="text" id="expenseDescription" placeholder="Coffee, cab, rent..." />
+          </label>
+          <div class="full">
+            <button type="submit" class="btn btn-primary">Add Expense</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Targets & Alerts</h2>
+        <div class="form-grid">
+          <label>
+            Monthly Budget (INR)
+            <input type="number" id="monthlyBudget" min="0" step="0.01" />
+          </label>
+          <label>
+            Alert at (% of budget)
+            <input type="number" id="budgetAlertPercent" min="0" max="100" step="1" />
+          </label>
+          <div class="full">
+            <button id="saveBudgetBtn" class="btn">Save Budget</button>
+          </div>
+        </div>
+
+        <div class="target-grid">
+          <div>
+            <h3>Category Targets</h3>
+            <form id="targetForm" class="form-grid">
+              <label>
+                Category
+                <select id="targetCategory">
+                  <option>Food</option>
+                  <option>Transport</option>
+                  <option>Housing</option>
+                  <option>Utilities</option>
+                  <option>Health</option>
+                  <option>Shopping</option>
+                  <option>Entertainment</option>
+                  <option>Education</option>
+                  <option>Travel</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label>
+                Target (INR)
+                <input type="number" id="targetAmount" min="0" step="0.01" />
+              </label>
+              <div class="full">
+                <button type="submit" class="btn">Add/Update Target</button>
+              </div>
+            </form>
+          </div>
+          <div>
+            <h3>Active Targets</h3>
+            <ul id="targetList" class="list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Dashboard</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span>Total Spent (Month)</span>
+            <strong id="statMonthlyTotal">INR 0</strong>
+          </div>
+          <div class="stat-card">
+            <span>Total Spent (All)</span>
+            <strong id="statTotal">INR 0</strong>
+          </div>
+          <div class="stat-card">
+            <span>Average Daily</span>
+            <strong id="statAverage">INR 0</strong>
+          </div>
+          <div class="stat-card">
+            <span>Top Category</span>
+            <strong id="statTopCategory">-</strong>
+          </div>
+          <div class="stat-card">
+            <span>Budget Remaining</span>
+            <strong id="statRemaining">INR 0</strong>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="categoryChart" height="220"></canvas>
+        </div>
+        <div id="alertBox" class="alert-box"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Expense Entries</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount (INR)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="expenseTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
