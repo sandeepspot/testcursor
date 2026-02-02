@@ -468,9 +468,11 @@ elements.cloudSignInBtn.addEventListener("click", async () => {
     updateCloudStatus("Enter an email to receive a sign-in link.", "error");
     return;
   }
+  const config = getSupabaseConfig();
+  const redirectUrl = config?.redirectUrl || window.location.href;
   const result = await cloudState.client.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.href },
+    options: { emailRedirectTo: redirectUrl },
   });
   if (result.error) {
     updateCloudStatus("Sign-in failed. Check the email and try again.", "error");
