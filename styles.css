@@ -9,6 +9,10 @@ body {
   color: #1f2430;
 }
 
+.app-shell {
+  display: block;
+}
+
 .page-header {
   display: flex;
   align-items: center;
@@ -99,6 +103,112 @@ body {
   padding: 12px 48px 48px;
 }
 
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 1000;
+}
+
+.auth-card {
+  width: min(520px, 95vw);
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.24);
+  display: grid;
+  gap: 16px;
+}
+
+.auth-header h2 {
+  margin: 0 0 6px;
+}
+
+.auth-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.auth-tab {
+  flex: 1;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #f8fafc;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.auth-tab.active {
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
+}
+
+.auth-status {
+  min-height: 20px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.auth-form {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #5c6475;
+}
+
+.auth-form input {
+  border: 1px solid #d6d9e0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.auth-divider {
+  position: relative;
+  text-align: center;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.auth-divider::before {
+  left: 0;
+}
+
+.auth-divider::after {
+  right: 0;
+}
+
+.auth-oauth {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
 .cloud-grid {
   display: grid;
   gap: 20px;
@@ -154,6 +264,12 @@ body {
   color: #4b5563;
   font-size: 13px;
   line-height: 1.5;
+}
+
+.admin-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .mfa-panel {

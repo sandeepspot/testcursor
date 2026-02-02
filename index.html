@@ -7,19 +7,77 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="page-header hero-banner">
-      <div class="hero">
-        <span class="hero-badge">Welcome</span>
-        <h1>Welcome to Sandy's Expense Journal</h1>
-        <p class="subtitle">Track daily expenses in INR and keep targets on course.</p>
-      </div>
-      <div class="header-actions">
-        <button id="exportBtn" class="btn">Export</button>
-        <button id="clearBtn" class="btn btn-secondary">Clear All Data</button>
-      </div>
-    </header>
+    <div id="authOverlay" class="auth-overlay hidden">
+      <div class="auth-card">
+        <div class="auth-header">
+          <h2>Sign in to Expense Journal</h2>
+          <p>Access your secure cloud-stored expense data.</p>
+        </div>
+        <div class="auth-tabs">
+          <button id="authTabSignIn" class="auth-tab active">Sign In</button>
+          <button id="authTabSignUp" class="auth-tab">Sign Up</button>
+        </div>
+        <div class="auth-body">
+          <div id="authStatus" class="auth-status"></div>
+          <form id="authSignInForm" class="auth-form">
+            <label>
+              Email
+              <input type="email" id="authSignInEmail" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Password
+              <input type="password" id="authSignInPassword" required />
+            </label>
+            <div id="authMfaGroup" class="hidden">
+              <label>
+                2FA Code
+                <input type="text" id="authMfaCode" inputmode="numeric" maxlength="6" />
+              </label>
+              <button type="button" id="authMfaVerifyBtn" class="btn btn-secondary">
+                Verify 2FA
+              </button>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign In</button>
+          </form>
 
-    <main class="layout">
+          <form id="authSignUpForm" class="auth-form hidden">
+            <label>
+              Email
+              <input type="email" id="authSignUpEmail" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Password
+              <input type="password" id="authSignUpPassword" minlength="6" required />
+            </label>
+            <button type="submit" class="btn btn-primary">Create Account</button>
+          </form>
+
+          <div class="auth-divider">
+            <span>Or continue with</span>
+          </div>
+          <div class="auth-oauth">
+            <button id="authGoogleBtn" class="btn btn-secondary">Google</button>
+            <button id="authGithubBtn" class="btn btn-secondary">GitHub</button>
+            <button id="authMicrosoftBtn" class="btn btn-secondary">Microsoft</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="appShell" class="app-shell">
+      <header class="page-header hero-banner">
+        <div class="hero">
+          <span class="hero-badge">Welcome</span>
+          <h1>Welcome to Sandy's Expense Journal</h1>
+          <p class="subtitle">Track daily expenses in INR and keep targets on course.</p>
+        </div>
+        <div class="header-actions">
+          <button id="exportBtn" class="btn">Export</button>
+          <button id="clearBtn" class="btn btn-secondary">Clear All Data</button>
+        </div>
+      </header>
+
+      <main class="layout">
       <section class="panel">
         <h2>Cloud Sync</h2>
         <div class="cloud-grid">
@@ -62,6 +120,42 @@
               Cloud sync stores your expenses in a private account so you can access them
               from any device. We use Supabase with row-level security enabled.
             </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="adminPanel" class="panel hidden">
+        <h2>Admin Access Management</h2>
+        <div class="admin-grid">
+          <div>
+            <h3>Add or Update User</h3>
+            <form id="adminUserForm" class="form-grid">
+              <label>
+                User Email
+                <input type="email" id="adminUserEmail" placeholder="user@example.com" required />
+              </label>
+              <label>
+                Role
+                <select id="adminUserRole">
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </label>
+              <label>
+                Active
+                <select id="adminUserActive">
+                  <option value="true">Active</option>
+                  <option value="false">Disabled</option>
+                </select>
+              </label>
+              <div class="full">
+                <button type="submit" class="btn">Save User</button>
+              </div>
+            </form>
+          </div>
+          <div>
+            <h3>Current Users</h3>
+            <ul id="adminUserList" class="list"></ul>
           </div>
         </div>
       </section>
@@ -201,7 +295,8 @@
           </table>
         </div>
       </section>
-    </main>
+      </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
