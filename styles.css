@@ -13,9 +13,45 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32px 48px 16px;
+  padding: 40px 48px 24px;
   gap: 24px;
   flex-wrap: wrap;
+}
+
+.hero-banner {
+  position: relative;
+  border-radius: 24px;
+  margin: 24px 48px 0;
+  padding: 36px 40px;
+  background: radial-gradient(circle at top left, #eff6ff, #f8fafc 45%, #f1f5f9 100%);
+  overflow: hidden;
+}
+
+.hero-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(37, 99, 235, 0.18), rgba(34, 197, 94, 0.12));
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.hero-banner::after {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.15);
+  top: -80px;
+  right: -60px;
+  filter: blur(0);
+  pointer-events: none;
+}
+
+.hero-banner > * {
+  position: relative;
+  z-index: 1;
 }
 
 .hero {
@@ -60,7 +96,7 @@ body {
 .layout {
   display: grid;
   gap: 24px;
-  padding: 0 48px 48px;
+  padding: 12px 48px 48px;
 }
 
 .panel {
@@ -233,5 +269,10 @@ td {
   .page-header,
   .layout {
     padding: 24px;
+  }
+
+  .hero-banner {
+    margin: 16px 24px 0;
+    padding: 28px;
   }
 }
