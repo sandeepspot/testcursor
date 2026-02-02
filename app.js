@@ -369,6 +369,31 @@ const updateProfileDisplay = () => {
   if (elements.profileAvatar) elements.profileAvatar.textContent = getInitials(email);
 };
 
+const setActiveView = (view) => {
+  const sections = document.querySelectorAll(".view-section");
+  sections.forEach((section) => {
+    section.classList.toggle("active", section.dataset.view === view);
+  });
+  const navItems = document.querySelectorAll(".nav-item");
+  navItems.forEach((item) => {
+    item.classList.toggle("active", item.dataset.view === view);
+  });
+};
+
+const getInitialView = () => {
+  const hash = window.location.hash.replace("#", "");
+  if (!hash) return "dashboard";
+  const section = document.querySelector(`.view-section[data-view="${hash}"]`);
+  return section ? hash : "dashboard";
+};
+
+const initViewRouting = () => {
+  setActiveView(getInitialView());
+  window.addEventListener("hashchange", () => {
+    setActiveView(getInitialView());
+  });
+};
+
 const switchAuthTab = (tab) => {
   const isSignIn = tab === "signin";
   elements.authTabSignIn.classList.toggle("active", isSignIn);
@@ -971,6 +996,7 @@ const init = () => {
   elements.expenseDate.value = todayIso();
   renderAll();
   initSupabase();
+  initViewRouting();
 };
 
 init();
