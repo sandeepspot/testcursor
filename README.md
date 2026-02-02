@@ -51,3 +51,9 @@ create policy "Budgets are private" on budgets
 ```
 
 4. Open the app and sign in from the Cloud Sync panel.
+
+### Enable 2FA (TOTP)
+
+- Open the app and sign in.
+- In the Cloud Sync section, click **Set Up 2FA**.
+- Scan the QR code in your authenticator app and enter the 6-digit code to verify.

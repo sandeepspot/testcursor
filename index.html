@@ -35,6 +35,26 @@
                 <button id="cloudSignOutBtn" class="btn btn-secondary" disabled>Sign Out</button>
               </div>
             </div>
+            <div class="mfa-panel">
+              <div class="mfa-header">
+                <h3>Two-Factor Authentication (2FA)</h3>
+                <span id="mfaStatus" class="mfa-status">Not configured.</span>
+              </div>
+              <div class="mfa-actions">
+                <button id="mfaEnrollBtn" class="btn btn-secondary">Set Up 2FA</button>
+                <button id="mfaDisableBtn" class="btn btn-secondary" disabled>Disable 2FA</button>
+              </div>
+              <div id="mfaEnrollArea" class="mfa-enroll hidden">
+                <p>Scan the QR code with Google Authenticator, Authy, or 1Password.</p>
+                <img id="mfaQr" alt="2FA QR Code" />
+                <p class="mfa-secret">Secret: <span id="mfaSecret"></span></p>
+                <label>
+                  Enter 6-digit code
+                  <input type="text" id="mfaCode" inputmode="numeric" maxlength="6" />
+                </label>
+                <button id="mfaVerifyBtn" class="btn btn-primary">Verify & Enable</button>
+              </div>
+            </div>
           </div>
           <div class="cloud-note">
             <h3>Safe cloud storage</h3>

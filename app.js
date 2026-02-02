@@ -23,6 +23,11 @@ const cloudState = {
     expenses: new Set(),
     targets: new Set(),
   },
+  mfa: {
+    factors: [],
+    enrolledFactorId: null,
+    challengeId: null,
+  },
 };
 
 const elements = {
@@ -52,6 +57,14 @@ const elements = {
   cloudEmail: document.getElementById("cloudEmail"),
   cloudSignInBtn: document.getElementById("cloudSignInBtn"),
   cloudSignOutBtn: document.getElementById("cloudSignOutBtn"),
+  mfaStatus: document.getElementById("mfaStatus"),
+  mfaEnrollBtn: document.getElementById("mfaEnrollBtn"),
+  mfaDisableBtn: document.getElementById("mfaDisableBtn"),
+  mfaEnrollArea: document.getElementById("mfaEnrollArea"),
+  mfaQr: document.getElementById("mfaQr"),
+  mfaSecret: document.getElementById("mfaSecret"),
+  mfaCode: document.getElementById("mfaCode"),
+  mfaVerifyBtn: document.getElementById("mfaVerifyBtn"),
 };
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -246,11 +259,110 @@ const handleSessionChange = () => {
   if (cloudState.session?.user) {
     updateCloudStatus(`Signed in as ${cloudState.session.user.email}`, "success");
     elements.cloudSignOutBtn.disabled = false;
+    refreshMfaStatus();
     pullFromCloud();
   } else {
     updateCloudStatus("Not signed in. Use the email link to enable cloud sync.");
     elements.cloudSignOutBtn.disabled = true;
+    setMfaStatus("Not configured.");
+    elements.mfaDisableBtn.disabled = true;
+    elements.mfaEnrollArea.classList.add("hidden");
   }
+};
+
+const setMfaStatus = (text, tone = "neutral") => {
+  if (!elements.mfaStatus) return;
+  elements.mfaStatus.textContent = text;
+  elements.mfaStatus.style.background =
+    tone === "success" ? "#dcfce7" : tone === "warning" ? "#fef3c7" : "#e5e7eb";
+  elements.mfaStatus.style.color =
+    tone === "success" ? "#166534" : tone === "warning" ? "#92400e" : "#111827";
+};
+
+const refreshMfaStatus = async () => {
+  if (!cloudState.client || !cloudState.session?.user) return;
+  const result = await cloudState.client.auth.mfa.listFactors();
+  if (result.error) {
+    setMfaStatus("2FA unavailable.", "warning");
+    return;
+  }
+  cloudState.mfa.factors = result.data?.all || [];
+  const verifiedFactor = cloudState.mfa.factors.find((factor) => factor.status === "verified");
+  if (verifiedFactor) {
+    cloudState.mfa.enrolledFactorId = verifiedFactor.id;
+    setMfaStatus("Enabled", "success");
+    elements.mfaDisableBtn.disabled = false;
+    elements.mfaEnrollArea.classList.add("hidden");
+    return;
+  }
+  setMfaStatus("Not enabled", "warning");
+  elements.mfaDisableBtn.disabled = true;
+};
+
+const enrollMfa = async () => {
+  if (!cloudState.client || !cloudState.session?.user) {
+    updateCloudStatus("Sign in before enabling 2FA.", "error");
+    return;
+  }
+  const result = await cloudState.client.auth.mfa.enroll({ factorType: "totp" });
+  if (result.error) {
+    updateCloudStatus("2FA enrollment failed. Try again.", "error");
+    return;
+  }
+  const { id, totp } = result.data;
+  cloudState.mfa.enrolledFactorId = id;
+  cloudState.mfa.challengeId = null;
+  if (totp?.qr_code) {
+    elements.mfaQr.src = totp.qr_code;
+  }
+  elements.mfaSecret.textContent = totp?.secret || "";
+  elements.mfaEnrollArea.classList.remove("hidden");
+  setMfaStatus("Scan QR and verify", "warning");
+};
+
+const verifyMfa = async () => {
+  const code = elements.mfaCode.value.trim();
+  if (!code || code.length < 6) {
+    updateCloudStatus("Enter the 6-digit code from your authenticator.", "error");
+    return;
+  }
+  if (!cloudState.mfa.enrolledFactorId) {
+    updateCloudStatus("Start 2FA setup first.", "error");
+    return;
+  }
+  const challenge = await cloudState.client.auth.mfa.challenge({
+    factorId: cloudState.mfa.enrolledFactorId,
+  });
+  if (challenge.error) {
+    updateCloudStatus("2FA challenge failed. Try again.", "error");
+    return;
+  }
+  const verify = await cloudState.client.auth.mfa.verify({
+    factorId: cloudState.mfa.enrolledFactorId,
+    challengeId: challenge.data.id,
+    code,
+  });
+  if (verify.error) {
+    updateCloudStatus("2FA verification failed. Check your code.", "error");
+    return;
+  }
+  elements.mfaEnrollArea.classList.add("hidden");
+  elements.mfaCode.value = "";
+  await refreshMfaStatus();
+};
+
+const disableMfa = async () => {
+  if (!cloudState.mfa.enrolledFactorId) return;
+  const result = await cloudState.client.auth.mfa.unenroll({
+    factorId: cloudState.mfa.enrolledFactorId,
+  });
+  if (result.error) {
+    updateCloudStatus("Unable to disable 2FA.", "error");
+    return;
+  }
+  cloudState.mfa.enrolledFactorId = null;
+  setMfaStatus("Not enabled", "warning");
+  elements.mfaDisableBtn.disabled = true;
 };
 
 const pullFromCloud = async () => {
@@ -486,6 +598,10 @@ elements.cloudSignOutBtn.addEventListener("click", async () => {
   await cloudState.client.auth.signOut();
   updateCloudStatus("Signed out from cloud sync.");
 });
+
+elements.mfaEnrollBtn.addEventListener("click", enrollMfa);
+elements.mfaVerifyBtn.addEventListener("click", verifyMfa);
+elements.mfaDisableBtn.addEventListener("click", disableMfa);
 
 const init = () => {
   loadState();

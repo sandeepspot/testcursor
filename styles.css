@@ -156,6 +156,65 @@ body {
   line-height: 1.5;
 }
 
+.mfa-panel {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed #cbd5f5;
+  background: #f8f9ff;
+  display: grid;
+  gap: 12px;
+}
+
+.mfa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mfa-header h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.mfa-status {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.mfa-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mfa-enroll {
+  display: grid;
+  gap: 10px;
+}
+
+.mfa-enroll img {
+  max-width: 160px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 8px;
+}
+
+.mfa-secret {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.hidden {
+  display: none;
+}
+
 .panel {
   background: #fff;
   border-radius: 16px;
