@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Expense Journal</title>
+    <title>Expense Journal · Cloud Sync</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -67,9 +67,9 @@
     <div id="appShell" class="app-shell">
       <header class="page-header hero-banner">
         <div class="hero">
-          <span class="hero-badge">Welcome</span>
-          <h1>Welcome to Sandy's Expense Journal</h1>
-          <p class="subtitle">Track daily expenses in INR and keep targets on course.</p>
+          <span class="hero-badge">Cloud</span>
+          <h1>Keep your data backed up</h1>
+          <p class="subtitle">Sync across devices with secure cloud storage.</p>
         </div>
         <div class="header-actions">
           <button id="exportBtn" class="btn">Export</button>
@@ -87,11 +87,11 @@
             </div>
           </div>
           <nav class="nav-list">
-            <a class="nav-item active" href="index.html">Overview</a>
+            <a class="nav-item" href="index.html">Overview</a>
             <a class="nav-item" href="expenses.html">Expenses</a>
             <a class="nav-item" href="targets.html">Targets</a>
             <a class="nav-item" href="entries.html">Entries</a>
-            <a class="nav-item" href="cloud.html">Cloud Sync</a>
+            <a class="nav-item active" href="cloud.html">Cloud Sync</a>
             <a class="nav-item" href="admin.html">Admin</a>
             <a class="nav-item" href="settings.html">Settings</a>
           </nav>
@@ -107,35 +107,50 @@
         </aside>
 
         <main class="layout">
-          <section id="dashboard" class="panel">
-            <h2>Dashboard</h2>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <span>Total Spent (Month)</span>
-                <strong id="statMonthlyTotal">INR 0</strong>
+          <section class="panel">
+            <h2>Cloud Sync</h2>
+            <div class="cloud-grid">
+              <div>
+                <p id="cloudStatus" class="cloud-status">Cloud sync not configured.</p>
+                <div class="cloud-actions">
+                  <label>
+                    Email for magic link
+                    <input type="email" id="cloudEmail" placeholder="you@example.com" />
+                  </label>
+                  <div class="cloud-buttons">
+                    <button id="cloudSignInBtn" class="btn">Send Sign-In Link</button>
+                    <button id="cloudSignOutBtn" class="btn btn-secondary" disabled>Sign Out</button>
+                  </div>
+                </div>
+                <div class="mfa-panel">
+                  <div class="mfa-header">
+                    <h3>Two-Factor Authentication (2FA)</h3>
+                    <span id="mfaStatus" class="mfa-status">Not configured.</span>
+                  </div>
+                  <div class="mfa-actions">
+                    <button id="mfaEnrollBtn" class="btn btn-secondary">Set Up 2FA</button>
+                    <button id="mfaDisableBtn" class="btn btn-secondary" disabled>Disable 2FA</button>
+                  </div>
+                  <div id="mfaEnrollArea" class="mfa-enroll hidden">
+                    <p>Scan the QR code with Google Authenticator, Authy, or 1Password.</p>
+                    <img id="mfaQr" alt="2FA QR Code" />
+                    <p class="mfa-secret">Secret: <span id="mfaSecret"></span></p>
+                    <label>
+                      Enter 6-digit code
+                      <input type="text" id="mfaCode" inputmode="numeric" maxlength="6" />
+                    </label>
+                    <button id="mfaVerifyBtn" class="btn btn-primary">Verify & Enable</button>
+                  </div>
+                </div>
               </div>
-              <div class="stat-card">
-                <span>Total Spent (All)</span>
-                <strong id="statTotal">INR 0</strong>
-              </div>
-              <div class="stat-card">
-                <span>Average Daily</span>
-                <strong id="statAverage">INR 0</strong>
-              </div>
-              <div class="stat-card">
-                <span>Top Category</span>
-                <strong id="statTopCategory">-</strong>
-              </div>
-              <div class="stat-card">
-                <span>Budget Remaining</span>
-                <strong id="statRemaining">INR 0</strong>
+              <div class="cloud-note">
+                <h3>Safe cloud storage</h3>
+                <p>
+                  Cloud sync stores your expenses in a private account so you can access them
+                  from any device. We use Supabase with row-level security enabled.
+                </p>
               </div>
             </div>
-
-            <div class="chart-wrap">
-              <canvas id="categoryChart" height="220"></canvas>
-            </div>
-            <div id="alertBox" class="alert-box"></div>
           </section>
         </main>
       </div>

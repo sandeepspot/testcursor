@@ -155,6 +155,7 @@ const getMonthlyExpenses = () => {
 };
 
 const renderExpenses = () => {
+  if (!elements.expenseTable) return;
   elements.expenseTable.innerHTML = "";
   state.expenses
     .slice()
@@ -181,6 +182,7 @@ const renderExpenses = () => {
 };
 
 const renderTargets = () => {
+  if (!elements.targetList) return;
   elements.targetList.innerHTML = "";
   if (!state.targets.length) {
     const empty = document.createElement("li");
@@ -205,6 +207,15 @@ const renderTargets = () => {
 };
 
 const renderStats = () => {
+  if (
+    !elements.statTotal &&
+    !elements.statMonthlyTotal &&
+    !elements.statAverage &&
+    !elements.statTopCategory &&
+    !elements.statRemaining
+  ) {
+    return;
+  }
   const total = state.expenses.reduce((sum, exp) => sum + exp.amount, 0);
   const monthlyExpenses = getMonthlyExpenses();
   const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -214,17 +225,24 @@ const renderStats = () => {
   const topCategory = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
   const remaining = state.budget.monthly ? state.budget.monthly - monthlyTotal : 0;
 
-  elements.statTotal.textContent = formatCurrency(total);
-  elements.statMonthlyTotal.textContent = formatCurrency(monthlyTotal);
-  elements.statAverage.textContent = formatCurrency(avgDaily);
-  elements.statTopCategory.textContent = topCategory ? topCategory[0] : "-";
-  elements.statRemaining.textContent = formatCurrency(remaining);
+  if (elements.statTotal) elements.statTotal.textContent = formatCurrency(total);
+  if (elements.statMonthlyTotal) {
+    elements.statMonthlyTotal.textContent = formatCurrency(monthlyTotal);
+  }
+  if (elements.statAverage) elements.statAverage.textContent = formatCurrency(avgDaily);
+  if (elements.statTopCategory) {
+    elements.statTopCategory.textContent = topCategory ? topCategory[0] : "-";
+  }
+  if (elements.statRemaining) elements.statRemaining.textContent = formatCurrency(remaining);
 
-  elements.monthlyBudget.value = state.budget.monthly || "";
-  elements.budgetAlertPercent.value = state.budget.alertPercent ?? 80;
+  if (elements.monthlyBudget) elements.monthlyBudget.value = state.budget.monthly || "";
+  if (elements.budgetAlertPercent) {
+    elements.budgetAlertPercent.value = state.budget.alertPercent ?? 80;
+  }
 };
 
 const renderAlerts = () => {
+  if (!elements.alertBox) return;
   elements.alertBox.innerHTML = "";
   const alerts = [];
   const monthlyTotal = getMonthlyExpenses().reduce((sum, exp) => sum + exp.amount, 0);
@@ -286,7 +304,7 @@ const getSupabaseConfig = () => {
 };
 
 const initSupabase = async () => {
-  if (!window.supabase || !elements.cloudStatus) return;
+  if (!window.supabase) return;
   const config = getSupabaseConfig();
   if (!config) {
     updateCloudStatus("Cloud sync not configured. Update config.js to enable.");
@@ -316,7 +334,7 @@ const handleSessionChange = () => {
   if (!cloudState.configured) return;
   if (cloudState.session?.user) {
     updateCloudStatus(`Signed in as ${cloudState.session.user.email}`, "success");
-    elements.cloudSignOutBtn.disabled = false;
+    if (elements.cloudSignOutBtn) elements.cloudSignOutBtn.disabled = false;
     if (!cloudState.mfa.pendingLogin) {
       setAuthOverlay(false);
     }
@@ -326,10 +344,10 @@ const handleSessionChange = () => {
     pullFromCloud();
   } else {
     updateCloudStatus("Not signed in. Use the login screen to enable cloud sync.");
-    elements.cloudSignOutBtn.disabled = true;
+    if (elements.cloudSignOutBtn) elements.cloudSignOutBtn.disabled = true;
     setMfaStatus("Not configured.");
-    elements.mfaDisableBtn.disabled = true;
-    elements.mfaEnrollArea.classList.add("hidden");
+    if (elements.mfaDisableBtn) elements.mfaDisableBtn.disabled = true;
+    if (elements.mfaEnrollArea) elements.mfaEnrollArea.classList.add("hidden");
     cloudState.profile = null;
     updateProfileDisplay();
     setAuthOverlay(true);
@@ -369,30 +387,6 @@ const updateProfileDisplay = () => {
   if (elements.profileAvatar) elements.profileAvatar.textContent = getInitials(email);
 };
 
-const setActiveView = (view) => {
-  const sections = document.querySelectorAll(".view-section");
-  sections.forEach((section) => {
-    section.classList.toggle("active", section.dataset.view === view);
-  });
-  const navItems = document.querySelectorAll(".nav-item");
-  navItems.forEach((item) => {
-    item.classList.toggle("active", item.dataset.view === view);
-  });
-};
-
-const getInitialView = () => {
-  const hash = window.location.hash.replace("#", "");
-  if (!hash) return "dashboard";
-  const section = document.querySelector(`.view-section[data-view="${hash}"]`);
-  return section ? hash : "dashboard";
-};
-
-const initViewRouting = () => {
-  setActiveView(getInitialView());
-  window.addEventListener("hashchange", () => {
-    setActiveView(getInitialView());
-  });
-};
 
 const switchAuthTab = (tab) => {
   const isSignIn = tab === "signin";
@@ -611,12 +605,12 @@ const refreshMfaStatus = async () => {
   if (verifiedFactor) {
     cloudState.mfa.enrolledFactorId = verifiedFactor.id;
     setMfaStatus("Enabled", "success");
-    elements.mfaDisableBtn.disabled = false;
-    elements.mfaEnrollArea.classList.add("hidden");
+    if (elements.mfaDisableBtn) elements.mfaDisableBtn.disabled = false;
+    if (elements.mfaEnrollArea) elements.mfaEnrollArea.classList.add("hidden");
     return;
   }
   setMfaStatus("Not enabled", "warning");
-  elements.mfaDisableBtn.disabled = true;
+  if (elements.mfaDisableBtn) elements.mfaDisableBtn.disabled = true;
 };
 
 const enrollMfa = async () => {
@@ -632,11 +626,11 @@ const enrollMfa = async () => {
   const { id, totp } = result.data;
   cloudState.mfa.enrolledFactorId = id;
   cloudState.mfa.challengeId = null;
-  if (totp?.qr_code) {
+  if (totp?.qr_code && elements.mfaQr) {
     elements.mfaQr.src = totp.qr_code;
   }
-  elements.mfaSecret.textContent = totp?.secret || "";
-  elements.mfaEnrollArea.classList.remove("hidden");
+  if (elements.mfaSecret) elements.mfaSecret.textContent = totp?.secret || "";
+  if (elements.mfaEnrollArea) elements.mfaEnrollArea.classList.remove("hidden");
   setMfaStatus("Scan QR and verify", "warning");
 };
 
@@ -666,8 +660,8 @@ const verifyMfa = async () => {
     updateCloudStatus("2FA verification failed. Check your code.", "error");
     return;
   }
-  elements.mfaEnrollArea.classList.add("hidden");
-  elements.mfaCode.value = "";
+  if (elements.mfaEnrollArea) elements.mfaEnrollArea.classList.add("hidden");
+  if (elements.mfaCode) elements.mfaCode.value = "";
   await refreshMfaStatus();
 };
 
@@ -682,7 +676,7 @@ const disableMfa = async () => {
   }
   cloudState.mfa.enrolledFactorId = null;
   setMfaStatus("Not enabled", "warning");
-  elements.mfaDisableBtn.disabled = true;
+  if (elements.mfaDisableBtn) elements.mfaDisableBtn.disabled = true;
 };
 
 const pullFromCloud = async () => {
@@ -784,6 +778,7 @@ const syncToCloud = async () => {
 };
 
 const renderChart = () => {
+  if (!elements.chart) return;
   const ctx = elements.chart.getContext("2d");
   const width = elements.chart.width = elements.chart.offsetWidth;
   const height = elements.chart.height = 220;
@@ -823,132 +818,162 @@ const renderAll = () => {
   renderChart();
 };
 
-elements.expenseForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const amount = parseFloat(elements.expenseAmount.value);
-  if (!amount || amount < 0) return;
-  const expense = {
-    id: crypto.randomUUID(),
-    date: elements.expenseDate.value,
-    amount,
-    category: elements.expenseCategory.value,
-    description: elements.expenseDescription.value.trim(),
-  };
-  state.expenses.push(expense);
-  saveState();
-  elements.expenseAmount.value = "";
-  elements.expenseDescription.value = "";
-  renderAll();
-});
-
-elements.targetForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const amount = parseFloat(elements.targetAmount.value);
-  if (!amount || amount < 0) return;
-  const category = elements.targetCategory.value;
-  const existing = state.targets.find((target) => target.category === category);
-  if (existing) {
-    existing.amount = amount;
-  } else {
-    state.targets.push({ category, amount });
-  }
-  elements.targetAmount.value = "";
-  saveState();
-  renderAll();
-});
-
-elements.saveBudgetBtn.addEventListener("click", () => {
-  const monthly = parseFloat(elements.monthlyBudget.value) || 0;
-  const alertPercent = parseFloat(elements.budgetAlertPercent.value) || 0;
-  state.budget.monthly = monthly;
-  state.budget.alertPercent = Math.min(Math.max(alertPercent, 0), 100);
-  saveState();
-  renderAll();
-});
-
-elements.exportBtn.addEventListener("click", () => {
-  const payload = JSON.stringify(state, null, 2);
-  const blob = new Blob([payload], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "expense-journal-export.json";
-  link.click();
-  URL.revokeObjectURL(url);
-});
-
-elements.clearBtn.addEventListener("click", () => {
-  if (!confirm("Clear all expenses, targets, and budget settings?")) return;
-  const expenseIds = state.expenses.map((item) => item.id);
-  const targetCategories = state.targets.map((item) => item.category);
-  state.expenses = [];
-  state.targets = [];
-  state.budget = { monthly: 0, alertPercent: 80 };
-  cloudState.pendingDeletes.expenses = new Set(expenseIds);
-  cloudState.pendingDeletes.targets = new Set(targetCategories);
-  saveState();
-  renderAll();
-});
-
-elements.cloudSignInBtn.addEventListener("click", async () => {
-  if (!cloudState.client) {
-    updateCloudStatus("Cloud sync not configured. Update config.js first.", "error");
-    return;
-  }
-  const email = elements.cloudEmail.value.trim();
-  if (!email) {
-    updateCloudStatus("Enter an email to receive a sign-in link.", "error");
-    return;
-  }
-  const config = getSupabaseConfig();
-  const redirectUrl = config?.redirectUrl || window.location.href;
-  const result = await cloudState.client.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: redirectUrl },
+if (elements.expenseForm) {
+  elements.expenseForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const amount = parseFloat(elements.expenseAmount.value);
+    if (!amount || amount < 0) return;
+    const expense = {
+      id: crypto.randomUUID(),
+      date: elements.expenseDate.value,
+      amount,
+      category: elements.expenseCategory.value,
+      description: elements.expenseDescription.value.trim(),
+    };
+    state.expenses.push(expense);
+    saveState();
+    elements.expenseAmount.value = "";
+    elements.expenseDescription.value = "";
+    renderAll();
   });
-  if (result.error) {
-    updateCloudStatus("Sign-in failed. Check the email and try again.", "error");
-    return;
-  }
-  updateCloudStatus("Magic link sent. Check your email to finish sign-in.", "success");
-});
+}
 
-elements.cloudSignOutBtn.addEventListener("click", async () => {
-  if (!cloudState.client) return;
-  await cloudState.client.auth.signOut();
-  updateCloudStatus("Signed out from cloud sync.");
-  cloudState.mfa.pendingLogin = false;
-  cloudState.mfa.pendingFactorId = null;
-});
+if (elements.targetForm) {
+  elements.targetForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const amount = parseFloat(elements.targetAmount.value);
+    if (!amount || amount < 0) return;
+    const category = elements.targetCategory.value;
+    const existing = state.targets.find((target) => target.category === category);
+    if (existing) {
+      existing.amount = amount;
+    } else {
+      state.targets.push({ category, amount });
+    }
+    elements.targetAmount.value = "";
+    saveState();
+    renderAll();
+  });
+}
 
-elements.mfaEnrollBtn.addEventListener("click", enrollMfa);
-elements.mfaVerifyBtn.addEventListener("click", verifyMfa);
-elements.mfaDisableBtn.addEventListener("click", disableMfa);
+if (elements.saveBudgetBtn) {
+  elements.saveBudgetBtn.addEventListener("click", () => {
+    const monthly = parseFloat(elements.monthlyBudget.value) || 0;
+    const alertPercent = parseFloat(elements.budgetAlertPercent.value) || 0;
+    state.budget.monthly = monthly;
+    state.budget.alertPercent = Math.min(Math.max(alertPercent, 0), 100);
+    saveState();
+    renderAll();
+  });
+}
 
-elements.authTabSignIn.addEventListener("click", () => switchAuthTab("signin"));
-elements.authTabSignUp.addEventListener("click", () => switchAuthTab("signup"));
+if (elements.exportBtn) {
+  elements.exportBtn.addEventListener("click", () => {
+    const payload = JSON.stringify(state, null, 2);
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "expense-journal-export.json";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+}
 
-elements.authSignInForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  await signInWithPassword(
-    elements.authSignInEmail.value.trim(),
-    elements.authSignInPassword.value
-  );
-});
+if (elements.clearBtn) {
+  elements.clearBtn.addEventListener("click", () => {
+    if (!confirm("Clear all expenses, targets, and budget settings?")) return;
+    const expenseIds = state.expenses.map((item) => item.id);
+    const targetCategories = state.targets.map((item) => item.category);
+    state.expenses = [];
+    state.targets = [];
+    state.budget = { monthly: 0, alertPercent: 80 };
+    cloudState.pendingDeletes.expenses = new Set(expenseIds);
+    cloudState.pendingDeletes.targets = new Set(targetCategories);
+    saveState();
+    renderAll();
+  });
+}
 
-elements.authSignUpForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  await signUpWithPassword(
-    elements.authSignUpEmail.value.trim(),
-    elements.authSignUpPassword.value
-  );
-});
+if (elements.cloudSignInBtn) {
+  elements.cloudSignInBtn.addEventListener("click", async () => {
+    if (!cloudState.client) {
+      updateCloudStatus("Cloud sync not configured. Update config.js first.", "error");
+      return;
+    }
+    const email = elements.cloudEmail.value.trim();
+    if (!email) {
+      updateCloudStatus("Enter an email to receive a sign-in link.", "error");
+      return;
+    }
+    const config = getSupabaseConfig();
+    const redirectUrl = config?.redirectUrl || window.location.href;
+    const result = await cloudState.client.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectUrl },
+    });
+    if (result.error) {
+      updateCloudStatus("Sign-in failed. Check the email and try again.", "error");
+      return;
+    }
+    updateCloudStatus("Magic link sent. Check your email to finish sign-in.", "success");
+  });
+}
 
-elements.authMfaVerifyBtn.addEventListener("click", verifyLoginMfa);
+if (elements.cloudSignOutBtn) {
+  elements.cloudSignOutBtn.addEventListener("click", async () => {
+    if (!cloudState.client) return;
+    await cloudState.client.auth.signOut();
+    updateCloudStatus("Signed out from cloud sync.");
+    cloudState.mfa.pendingLogin = false;
+    cloudState.mfa.pendingFactorId = null;
+  });
+}
 
-elements.authGoogleBtn.addEventListener("click", () => signInWithProvider("google"));
-elements.authGithubBtn.addEventListener("click", () => signInWithProvider("github"));
-elements.authMicrosoftBtn.addEventListener("click", () => signInWithProvider("azure"));
+if (elements.mfaEnrollBtn) elements.mfaEnrollBtn.addEventListener("click", enrollMfa);
+if (elements.mfaVerifyBtn) elements.mfaVerifyBtn.addEventListener("click", verifyMfa);
+if (elements.mfaDisableBtn) elements.mfaDisableBtn.addEventListener("click", disableMfa);
+
+if (elements.authTabSignIn) {
+  elements.authTabSignIn.addEventListener("click", () => switchAuthTab("signin"));
+}
+if (elements.authTabSignUp) {
+  elements.authTabSignUp.addEventListener("click", () => switchAuthTab("signup"));
+}
+
+if (elements.authSignInForm) {
+  elements.authSignInForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await signInWithPassword(
+      elements.authSignInEmail.value.trim(),
+      elements.authSignInPassword.value
+    );
+  });
+}
+
+if (elements.authSignUpForm) {
+  elements.authSignUpForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await signUpWithPassword(
+      elements.authSignUpEmail.value.trim(),
+      elements.authSignUpPassword.value
+    );
+  });
+}
+
+if (elements.authMfaVerifyBtn) {
+  elements.authMfaVerifyBtn.addEventListener("click", verifyLoginMfa);
+}
+
+if (elements.authGoogleBtn) {
+  elements.authGoogleBtn.addEventListener("click", () => signInWithProvider("google"));
+}
+if (elements.authGithubBtn) {
+  elements.authGithubBtn.addEventListener("click", () => signInWithProvider("github"));
+}
+if (elements.authMicrosoftBtn) {
+  elements.authMicrosoftBtn.addEventListener("click", () => signInWithProvider("azure"));
+}
 
 if (elements.themeToggleBtn) {
   elements.themeToggleBtn.addEventListener("click", () => {
@@ -957,46 +982,49 @@ if (elements.themeToggleBtn) {
   });
 }
 
-elements.adminUserForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!cloudState.client) return;
-  if (!cloudState.isAdmin) {
-    updateCloudStatus("Admin access required.", "error");
-    return;
-  }
-  const email = elements.adminUserEmail.value.trim();
-  const role = elements.adminUserRole.value;
-  const active = elements.adminUserActive.value === "true";
-  if (!email) return;
-  const lookup = await cloudState.client.from("profiles").select("*").eq("email", email).single();
-  if (lookup.error) {
-    updateCloudStatus("User not found. Ask them to sign up first.", "error");
-    return;
-  }
-  const update = await cloudState.client
-    .from("profiles")
-    .update({ role, active })
-    .eq("user_id", lookup.data.user_id)
-    .select("*")
-    .single();
-  if (update.error) {
-    updateCloudStatus("Unable to update user.", "error");
-    return;
-  }
-  updateCloudStatus("User updated.", "success");
-  elements.adminUserEmail.value = "";
-  await loadAdminUsers();
-});
+if (elements.adminUserForm) {
+  elements.adminUserForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!cloudState.client) return;
+    if (!cloudState.isAdmin) {
+      updateCloudStatus("Admin access required.", "error");
+      return;
+    }
+    const email = elements.adminUserEmail.value.trim();
+    const role = elements.adminUserRole.value;
+    const active = elements.adminUserActive.value === "true";
+    if (!email) return;
+    const lookup = await cloudState.client.from("profiles").select("*").eq("email", email).single();
+    if (lookup.error) {
+      updateCloudStatus("User not found. Ask them to sign up first.", "error");
+      return;
+    }
+    const update = await cloudState.client
+      .from("profiles")
+      .update({ role, active })
+      .eq("user_id", lookup.data.user_id)
+      .select("*")
+      .single();
+    if (update.error) {
+      updateCloudStatus("Unable to update user.", "error");
+      return;
+    }
+    updateCloudStatus("User updated.", "success");
+    elements.adminUserEmail.value = "";
+    await loadAdminUsers();
+  });
+}
 
 const init = () => {
   initTheme();
   setAuthOverlay(true);
   switchAuthTab("signin");
   loadState();
-  elements.expenseDate.value = todayIso();
+  if (elements.expenseDate) {
+    elements.expenseDate.value = todayIso();
+  }
   renderAll();
   initSupabase();
-  initViewRouting();
 };
 
 init();

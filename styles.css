@@ -258,13 +258,6 @@ body.dark {
   padding: 0;
 }
 
-.view-section {
-  display: none;
-}
-
-.view-section.active {
-  display: block;
-}
 
 .auth-overlay {
   position: fixed;

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Expense Journal</title>
+    <title>Expense Journal · Admin</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -67,9 +67,9 @@
     <div id="appShell" class="app-shell">
       <header class="page-header hero-banner">
         <div class="hero">
-          <span class="hero-badge">Welcome</span>
-          <h1>Welcome to Sandy's Expense Journal</h1>
-          <p class="subtitle">Track daily expenses in INR and keep targets on course.</p>
+          <span class="hero-badge">Admin</span>
+          <h1>Manage user access</h1>
+          <p class="subtitle">Control who can access and manage the journal.</p>
         </div>
         <div class="header-actions">
           <button id="exportBtn" class="btn">Export</button>
@@ -87,12 +87,12 @@
             </div>
           </div>
           <nav class="nav-list">
-            <a class="nav-item active" href="index.html">Overview</a>
+            <a class="nav-item" href="index.html">Overview</a>
             <a class="nav-item" href="expenses.html">Expenses</a>
             <a class="nav-item" href="targets.html">Targets</a>
             <a class="nav-item" href="entries.html">Entries</a>
             <a class="nav-item" href="cloud.html">Cloud Sync</a>
-            <a class="nav-item" href="admin.html">Admin</a>
+            <a class="nav-item active" href="admin.html">Admin</a>
             <a class="nav-item" href="settings.html">Settings</a>
           </nav>
           <div class="sidebar-footer">
@@ -107,35 +107,40 @@
         </aside>
 
         <main class="layout">
-          <section id="dashboard" class="panel">
-            <h2>Dashboard</h2>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <span>Total Spent (Month)</span>
-                <strong id="statMonthlyTotal">INR 0</strong>
+          <section id="admin" class="panel hidden">
+            <h2>Admin Access Management</h2>
+            <div class="admin-grid">
+              <div>
+                <h3>Add or Update User</h3>
+                <form id="adminUserForm" class="form-grid">
+                  <label>
+                    User Email
+                    <input type="email" id="adminUserEmail" placeholder="user@example.com" required />
+                  </label>
+                  <label>
+                    Role
+                    <select id="adminUserRole">
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </label>
+                  <label>
+                    Active
+                    <select id="adminUserActive">
+                      <option value="true">Active</option>
+                      <option value="false">Disabled</option>
+                    </select>
+                  </label>
+                  <div class="full">
+                    <button type="submit" class="btn">Save User</button>
+                  </div>
+                </form>
               </div>
-              <div class="stat-card">
-                <span>Total Spent (All)</span>
-                <strong id="statTotal">INR 0</strong>
-              </div>
-              <div class="stat-card">
-                <span>Average Daily</span>
-                <strong id="statAverage">INR 0</strong>
-              </div>
-              <div class="stat-card">
-                <span>Top Category</span>
-                <strong id="statTopCategory">-</strong>
-              </div>
-              <div class="stat-card">
-                <span>Budget Remaining</span>
-                <strong id="statRemaining">INR 0</strong>
+              <div>
+                <h3>Current Users</h3>
+                <ul id="adminUserList" class="list"></ul>
               </div>
             </div>
-
-            <div class="chart-wrap">
-              <canvas id="categoryChart" height="220"></canvas>
-            </div>
-            <div id="alertBox" class="alert-box"></div>
           </section>
         </main>
       </div>

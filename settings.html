@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Expense Journal</title>
+    <title>Expense Journal · Settings</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -67,9 +67,9 @@
     <div id="appShell" class="app-shell">
       <header class="page-header hero-banner">
         <div class="hero">
-          <span class="hero-badge">Welcome</span>
-          <h1>Welcome to Sandy's Expense Journal</h1>
-          <p class="subtitle">Track daily expenses in INR and keep targets on course.</p>
+          <span class="hero-badge">Settings</span>
+          <h1>Personalize your workspace</h1>
+          <p class="subtitle">Manage profile details and app preferences.</p>
         </div>
         <div class="header-actions">
           <button id="exportBtn" class="btn">Export</button>
@@ -87,13 +87,13 @@
             </div>
           </div>
           <nav class="nav-list">
-            <a class="nav-item active" href="index.html">Overview</a>
+            <a class="nav-item" href="index.html">Overview</a>
             <a class="nav-item" href="expenses.html">Expenses</a>
             <a class="nav-item" href="targets.html">Targets</a>
             <a class="nav-item" href="entries.html">Entries</a>
             <a class="nav-item" href="cloud.html">Cloud Sync</a>
             <a class="nav-item" href="admin.html">Admin</a>
-            <a class="nav-item" href="settings.html">Settings</a>
+            <a class="nav-item active" href="settings.html">Settings</a>
           </nav>
           <div class="sidebar-footer">
             <div class="profile-chip">
@@ -107,35 +107,25 @@
         </aside>
 
         <main class="layout">
-          <section id="dashboard" class="panel">
-            <h2>Dashboard</h2>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <span>Total Spent (Month)</span>
-                <strong id="statMonthlyTotal">INR 0</strong>
+          <section class="panel">
+            <h2>Profile & App Settings</h2>
+            <div class="settings-grid">
+              <div class="settings-card">
+                <h3>Profile</h3>
+                <p>Email: <span id="profileEmailText">-</span></p>
+                <p>Role: <span id="profileRole">User</span></p>
               </div>
-              <div class="stat-card">
-                <span>Total Spent (All)</span>
-                <strong id="statTotal">INR 0</strong>
+              <div class="settings-card">
+                <h3>Appearance</h3>
+                <p>Switch between light and dark themes.</p>
+                <button id="themeToggleBtn" class="btn btn-secondary">Dark Mode</button>
               </div>
-              <div class="stat-card">
-                <span>Average Daily</span>
-                <strong id="statAverage">INR 0</strong>
-              </div>
-              <div class="stat-card">
-                <span>Top Category</span>
-                <strong id="statTopCategory">-</strong>
-              </div>
-              <div class="stat-card">
-                <span>Budget Remaining</span>
-                <strong id="statRemaining">INR 0</strong>
+              <div class="settings-card">
+                <h3>Data</h3>
+                <p>Export or clear your data anytime.</p>
+                <p class="settings-hint">Use the Export and Clear buttons in the header.</p>
               </div>
             </div>
-
-            <div class="chart-wrap">
-              <canvas id="categoryChart" height="220"></canvas>
-            </div>
-            <div id="alertBox" class="alert-box"></div>
           </section>
         </main>
       </div>

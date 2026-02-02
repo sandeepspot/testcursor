@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Expense Journal</title>
+    <title>Expense Journal · Targets</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -67,9 +67,9 @@
     <div id="appShell" class="app-shell">
       <header class="page-header hero-banner">
         <div class="hero">
-          <span class="hero-badge">Welcome</span>
-          <h1>Welcome to Sandy's Expense Journal</h1>
-          <p class="subtitle">Track daily expenses in INR and keep targets on course.</p>
+          <span class="hero-badge">Targets</span>
+          <h1>Set budgets and stay on track</h1>
+          <p class="subtitle">Manage monthly budgets and category targets in one place.</p>
         </div>
         <div class="header-actions">
           <button id="exportBtn" class="btn">Export</button>
@@ -87,9 +87,9 @@
             </div>
           </div>
           <nav class="nav-list">
-            <a class="nav-item active" href="index.html">Overview</a>
+            <a class="nav-item" href="index.html">Overview</a>
             <a class="nav-item" href="expenses.html">Expenses</a>
-            <a class="nav-item" href="targets.html">Targets</a>
+            <a class="nav-item active" href="targets.html">Targets</a>
             <a class="nav-item" href="entries.html">Entries</a>
             <a class="nav-item" href="cloud.html">Cloud Sync</a>
             <a class="nav-item" href="admin.html">Admin</a>
@@ -107,35 +107,55 @@
         </aside>
 
         <main class="layout">
-          <section id="dashboard" class="panel">
-            <h2>Dashboard</h2>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <span>Total Spent (Month)</span>
-                <strong id="statMonthlyTotal">INR 0</strong>
-              </div>
-              <div class="stat-card">
-                <span>Total Spent (All)</span>
-                <strong id="statTotal">INR 0</strong>
-              </div>
-              <div class="stat-card">
-                <span>Average Daily</span>
-                <strong id="statAverage">INR 0</strong>
-              </div>
-              <div class="stat-card">
-                <span>Top Category</span>
-                <strong id="statTopCategory">-</strong>
-              </div>
-              <div class="stat-card">
-                <span>Budget Remaining</span>
-                <strong id="statRemaining">INR 0</strong>
+          <section class="panel">
+            <h2>Targets & Alerts</h2>
+            <div class="form-grid">
+              <label>
+                Monthly Budget (INR)
+                <input type="number" id="monthlyBudget" min="0" step="0.01" />
+              </label>
+              <label>
+                Alert at (% of budget)
+                <input type="number" id="budgetAlertPercent" min="0" max="100" step="1" />
+              </label>
+              <div class="full">
+                <button id="saveBudgetBtn" class="btn">Save Budget</button>
               </div>
             </div>
 
-            <div class="chart-wrap">
-              <canvas id="categoryChart" height="220"></canvas>
+            <div class="target-grid">
+              <div>
+                <h3>Category Targets</h3>
+                <form id="targetForm" class="form-grid">
+                  <label>
+                    Category
+                    <select id="targetCategory">
+                      <option>Food</option>
+                      <option>Transport</option>
+                      <option>Housing</option>
+                      <option>Utilities</option>
+                      <option>Health</option>
+                      <option>Shopping</option>
+                      <option>Entertainment</option>
+                      <option>Education</option>
+                      <option>Travel</option>
+                      <option>Other</option>
+                    </select>
+                  </label>
+                  <label>
+                    Target (INR)
+                    <input type="number" id="targetAmount" min="0" step="0.01" />
+                  </label>
+                  <div class="full">
+                    <button type="submit" class="btn">Add/Update Target</button>
+                  </div>
+                </form>
+              </div>
+              <div>
+                <h3>Active Targets</h3>
+                <ul id="targetList" class="list"></ul>
+              </div>
             </div>
-            <div id="alertBox" class="alert-box"></div>
           </section>
         </main>
       </div>
