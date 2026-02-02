@@ -1,4 +1,5 @@
 const STORAGE_KEY = "expenseJournalData";
+const THEME_KEY = "expenseJournalTheme";
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
   currency: "INR",
@@ -52,6 +53,7 @@ const elements = {
   authGoogleBtn: document.getElementById("authGoogleBtn"),
   authGithubBtn: document.getElementById("authGithubBtn"),
   authMicrosoftBtn: document.getElementById("authMicrosoftBtn"),
+  themeToggleBtn: document.getElementById("themeToggleBtn"),
   expenseForm: document.getElementById("expenseForm"),
   expenseDate: document.getElementById("expenseDate"),
   expenseAmount: document.getElementById("expenseAmount"),
@@ -95,6 +97,25 @@ const elements = {
 };
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
+
+const getSystemTheme = () =>
+  window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+
+const applyTheme = (theme) => {
+  const isDark = theme === "dark";
+  document.body.classList.toggle("dark", isDark);
+  if (elements.themeToggleBtn) {
+    elements.themeToggleBtn.textContent = isDark ? "Light Mode" : "Dark Mode";
+  }
+  localStorage.setItem(THEME_KEY, theme);
+};
+
+const initTheme = () => {
+  const stored = localStorage.getItem(THEME_KEY);
+  applyTheme(stored || getSystemTheme());
+};
 
 const loadState = () => {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -876,6 +897,13 @@ elements.authGoogleBtn.addEventListener("click", () => signInWithProvider("googl
 elements.authGithubBtn.addEventListener("click", () => signInWithProvider("github"));
 elements.authMicrosoftBtn.addEventListener("click", () => signInWithProvider("azure"));
 
+if (elements.themeToggleBtn) {
+  elements.themeToggleBtn.addEventListener("click", () => {
+    const next = document.body.classList.contains("dark") ? "light" : "dark";
+    applyTheme(next);
+  });
+}
+
 elements.adminUserForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!cloudState.client) return;
@@ -908,6 +936,7 @@ elements.adminUserForm.addEventListener("submit", async (event) => {
 });
 
 const init = () => {
+  initTheme();
   setAuthOverlay(true);
   switchAuthTab("signin");
   loadState();
