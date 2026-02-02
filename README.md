@@ -23,6 +23,10 @@ create table if not exists profiles (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists admins (
+  user_id uuid primary key
+);
+
 create table if not exists expenses (
   id uuid primary key,
   user_id uuid not null,
@@ -49,6 +53,7 @@ alter table expenses enable row level security;
 alter table targets enable row level security;
 alter table budgets enable row level security;
 alter table profiles enable row level security;
+alter table admins enable row level security;
 
 drop policy if exists "Expenses are private" on expenses;
 drop policy if exists "Targets are private" on targets;
@@ -57,13 +62,15 @@ drop policy if exists "Profiles are viewable by owner" on profiles;
 drop policy if exists "Profiles admin read" on profiles;
 drop policy if exists "Profiles insert by owner" on profiles;
 drop policy if exists "Profiles update by admin" on profiles;
+drop policy if exists "Admins are viewable by self" on admins;
+drop policy if exists "Profiles admin manage" on profiles;
 
 create policy "Profiles are viewable by owner" on profiles
   for select using (auth.uid() = user_id);
 
 create policy "Profiles admin read" on profiles
   for select using (exists (
-    select 1 from profiles p where p.user_id = auth.uid() and p.role = 'admin'
+    select 1 from admins a where a.user_id = auth.uid()
   ));
 
 create policy "Profiles insert by owner" on profiles
@@ -71,10 +78,13 @@ create policy "Profiles insert by owner" on profiles
 
 create policy "Profiles update by admin" on profiles
   for update using (exists (
-    select 1 from profiles p where p.user_id = auth.uid() and p.role = 'admin'
+    select 1 from admins a where a.user_id = auth.uid()
   )) with check (exists (
-    select 1 from profiles p where p.user_id = auth.uid() and p.role = 'admin'
+    select 1 from admins a where a.user_id = auth.uid()
   ));
+
+create policy "Admins are viewable by self" on admins
+  for select using (auth.uid() = user_id);
 
 create policy "Expenses are private" on expenses
   for all using (
@@ -108,6 +118,10 @@ create policy "Budgets are private" on budgets
 5. To make yourself admin, run:
 
 ```
+insert into admins (user_id)
+select user_id from profiles where email = 'you@example.com'
+on conflict do nothing;
+
 update profiles set role = 'admin' where email = 'you@example.com';
 ```
 

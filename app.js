@@ -31,6 +31,7 @@ const cloudState = {
     pendingLogin: false,
   },
   profile: null,
+  isAdmin: false,
 };
 
 const elements = {
@@ -470,7 +471,18 @@ const ensureProfile = async () => {
     await cloudState.client.auth.signOut();
     return;
   }
-  toggleAdminPanel(profile.role === "admin");
+  await refreshAdminStatus();
+  toggleAdminPanel(cloudState.isAdmin);
+};
+
+const refreshAdminStatus = async () => {
+  if (!cloudState.client || !cloudState.session?.user) return;
+  const result = await cloudState.client
+    .from("admins")
+    .select("user_id")
+    .eq("user_id", cloudState.session.user.id)
+    .maybeSingle();
+  cloudState.isAdmin = Boolean(result.data);
 };
 
 const toggleAdminPanel = (isAdmin) => {
@@ -867,6 +879,10 @@ elements.authMicrosoftBtn.addEventListener("click", () => signInWithProvider("az
 elements.adminUserForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!cloudState.client) return;
+  if (!cloudState.isAdmin) {
+    updateCloudStatus("Admin access required.", "error");
+    return;
+  }
   const email = elements.adminUserEmail.value.trim();
   const role = elements.adminUserRole.value;
   const active = elements.adminUserActive.value === "true";
