@@ -50,6 +50,14 @@ alter table targets enable row level security;
 alter table budgets enable row level security;
 alter table profiles enable row level security;
 
+drop policy if exists "Expenses are private" on expenses;
+drop policy if exists "Targets are private" on targets;
+drop policy if exists "Budgets are private" on budgets;
+drop policy if exists "Profiles are viewable by owner" on profiles;
+drop policy if exists "Profiles admin read" on profiles;
+drop policy if exists "Profiles insert by owner" on profiles;
+drop policy if exists "Profiles update by admin" on profiles;
+
 create policy "Profiles are viewable by owner" on profiles
   for select using (auth.uid() = user_id);
 
