@@ -54,6 +54,9 @@ const elements = {
   authGithubBtn: document.getElementById("authGithubBtn"),
   authMicrosoftBtn: document.getElementById("authMicrosoftBtn"),
   themeToggleBtn: document.getElementById("themeToggleBtn"),
+  profileEmail: document.getElementById("profileEmail"),
+  profileEmailText: document.getElementById("profileEmailText"),
+  profileRole: document.getElementById("profileRole"),
   expenseForm: document.getElementById("expenseForm"),
   expenseDate: document.getElementById("expenseDate"),
   expenseAmount: document.getElementById("expenseAmount"),
@@ -317,6 +320,7 @@ const handleSessionChange = () => {
       setAuthOverlay(false);
     }
     refreshMfaStatus();
+    updateProfileDisplay();
     ensureProfile();
     pullFromCloud();
   } else {
@@ -325,6 +329,8 @@ const handleSessionChange = () => {
     setMfaStatus("Not configured.");
     elements.mfaDisableBtn.disabled = true;
     elements.mfaEnrollArea.classList.add("hidden");
+    cloudState.profile = null;
+    updateProfileDisplay();
     setAuthOverlay(true);
   }
 };
@@ -340,6 +346,14 @@ const setAuthStatus = (message, tone = "neutral") => {
   elements.authStatus.textContent = message;
   elements.authStatus.style.color =
     tone === "error" ? "#b91c1c" : tone === "success" ? "#15803d" : "#475569";
+};
+
+const updateProfileDisplay = () => {
+  const email = cloudState.session?.user?.email || "-";
+  const role = cloudState.profile?.role || "User";
+  if (elements.profileEmail) elements.profileEmail.textContent = email;
+  if (elements.profileEmailText) elements.profileEmailText.textContent = email;
+  if (elements.profileRole) elements.profileRole.textContent = role;
 };
 
 const switchAuthTab = (tab) => {
@@ -487,6 +501,7 @@ const ensureProfile = async () => {
     profile = insert.data;
   }
   cloudState.profile = profile;
+  updateProfileDisplay();
   if (!profile.active) {
     updateCloudStatus("Access disabled by admin.", "error");
     await cloudState.client.auth.signOut();

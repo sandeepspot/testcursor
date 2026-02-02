@@ -72,14 +72,33 @@
           <p class="subtitle">Track daily expenses in INR and keep targets on course.</p>
         </div>
         <div class="header-actions">
-          <button id="themeToggleBtn" class="btn btn-secondary">Dark Mode</button>
           <button id="exportBtn" class="btn">Export</button>
           <button id="clearBtn" class="btn btn-secondary">Clear All Data</button>
         </div>
       </header>
 
-      <main class="layout">
-      <section class="panel">
+      <div class="app-body">
+        <aside class="sidebar">
+          <div class="sidebar-brand">
+            <span class="brand-dot"></span>
+            Expense Journal
+          </div>
+          <nav class="nav-list">
+            <a href="#home">Overview</a>
+            <a href="#expenses">Expenses</a>
+            <a href="#targets">Targets</a>
+            <a href="#cloud-sync">Cloud Sync</a>
+            <a href="#admin">Admin</a>
+            <a href="#settings">Settings</a>
+          </nav>
+          <div class="sidebar-footer">
+            <p>Signed in as</p>
+            <strong id="profileEmail">-</strong>
+          </div>
+        </aside>
+
+        <main class="layout">
+      <section id="cloud-sync" class="panel">
         <h2>Cloud Sync</h2>
         <div class="cloud-grid">
           <div>
@@ -161,7 +180,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section id="expenses" class="panel">
         <h2>Add Expense</h2>
         <form id="expenseForm" class="form-grid">
           <label>
@@ -197,7 +216,7 @@
         </form>
       </section>
 
-      <section class="panel">
+      <section id="targets" class="panel">
         <h2>Targets & Alerts</h2>
         <div class="form-grid">
           <label>
@@ -248,7 +267,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section id="home" class="panel">
         <h2>Dashboard</h2>
         <div class="stats-grid">
           <div class="stat-card">
@@ -279,7 +298,7 @@
         <div id="alertBox" class="alert-box"></div>
       </section>
 
-      <section class="panel">
+      <section id="entries" class="panel">
         <h2>Expense Entries</h2>
         <div class="table-wrap">
           <table>
@@ -296,7 +315,28 @@
           </table>
         </div>
       </section>
+      <section id="settings" class="panel">
+        <h2>Profile & App Settings</h2>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Profile</h3>
+            <p>Email: <span id="profileEmailText">-</span></p>
+            <p>Role: <span id="profileRole">User</span></p>
+          </div>
+          <div class="settings-card">
+            <h3>Appearance</h3>
+            <p>Switch between light and dark themes.</p>
+            <button id="themeToggleBtn" class="btn btn-secondary">Dark Mode</button>
+          </div>
+          <div class="settings-card">
+            <h3>Data</h3>
+            <p>Export or clear your data anytime.</p>
+            <p class="settings-hint">Use the Export and Clear buttons in the header.</p>
+          </div>
+        </div>
+      </section>
       </main>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
