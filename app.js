@@ -84,14 +84,15 @@ const elements = {
   authMfaCode: document.getElementById("authMfaCode"),
   authMfaVerifyBtn: document.getElementById("authMfaVerifyBtn"),
   authGoogleBtn: document.getElementById("authGoogleBtn"),
-  authGithubBtn: document.getElementById("authGithubBtn"),
-  authMicrosoftBtn: document.getElementById("authMicrosoftBtn"),
   themeToggleBtn: document.getElementById("themeToggleBtn"),
   profileEmail: document.getElementById("profileEmail"),
   profileEmailText: document.getElementById("profileEmailText"),
   profileRole: document.getElementById("profileRole"),
   profileAvatar: document.getElementById("profileAvatar"),
   logTable: document.getElementById("logTable"),
+  logSearch: document.getElementById("logSearch"),
+  logExportBtn: document.getElementById("logExportBtn"),
+  globalSignOutBtn: document.getElementById("globalSignOutBtn"),
   expenseForm: document.getElementById("expenseForm"),
   expenseDate: document.getElementById("expenseDate"),
   expenseAmount: document.getElementById("expenseAmount"),
@@ -601,6 +602,16 @@ const toggleAdminPanel = (isAdmin) => {
   if (isAdmin) loadAdminUsers();
 };
 
+const signOutEverywhere = async () => {
+  if (!cloudState.client) return;
+  await cloudState.client.auth.signOut();
+  updateCloudStatus("Signed out from cloud sync.");
+  addLog("auth", "sign-out", "User signed out");
+  cloudState.mfa.pendingLogin = false;
+  cloudState.mfa.pendingFactorId = null;
+  setAuthOverlay(true);
+};
+
 const loadAdminUsers = async () => {
   if (!cloudState.client) return;
   const { data, error } = await cloudState.client.from("profiles").select("*").order("email");
@@ -855,12 +866,47 @@ const renderChart = () => {
   });
 };
 
+const filterLogs = (logs, query) => {
+  if (!query) return logs;
+  const needle = query.toLowerCase();
+  return logs.filter((log) => {
+    const content = `${log.category} ${log.action} ${log.detail || ""}`.toLowerCase();
+    return content.includes(needle);
+  });
+};
+
+const exportLogsCsv = (rows) => {
+  const header = ["time", "category", "action", "detail"];
+  const csv = [
+    header.join(","),
+    ...rows.map((row) =>
+      [
+        row.time,
+        row.category,
+        row.action,
+        (row.detail || "").replace(/"/g, '""'),
+      ]
+        .map((value) => `"${value}"`)
+        .join(",")
+    ),
+  ].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "expense-journal-logs.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
 const renderLogs = () => {
   if (!elements.logTable) return;
   const category = elements.logTable.dataset.logCategory || "all";
   const logs = loadLogs();
-  const filtered =
+  const scoped =
     category === "all" ? logs : logs.filter((log) => log.category === category);
+  const query = elements.logSearch?.value?.trim() || "";
+  const filtered = filterLogs(scoped, query);
 
   elements.logTable.innerHTML = "";
   filtered.slice(0, 200).forEach((log) => {
@@ -994,14 +1040,7 @@ if (elements.cloudSignInBtn) {
 }
 
 if (elements.cloudSignOutBtn) {
-  elements.cloudSignOutBtn.addEventListener("click", async () => {
-    if (!cloudState.client) return;
-    await cloudState.client.auth.signOut();
-    updateCloudStatus("Signed out from cloud sync.");
-    addLog("auth", "sign-out", "User signed out");
-    cloudState.mfa.pendingLogin = false;
-    cloudState.mfa.pendingFactorId = null;
-  });
+  elements.cloudSignOutBtn.addEventListener("click", signOutEverywhere);
 }
 
 if (elements.mfaEnrollBtn) elements.mfaEnrollBtn.addEventListener("click", enrollMfa);
@@ -1041,12 +1080,6 @@ if (elements.authMfaVerifyBtn) {
 
 if (elements.authGoogleBtn) {
   elements.authGoogleBtn.addEventListener("click", () => signInWithProvider("google"));
-}
-if (elements.authGithubBtn) {
-  elements.authGithubBtn.addEventListener("click", () => signInWithProvider("github"));
-}
-if (elements.authMicrosoftBtn) {
-  elements.authMicrosoftBtn.addEventListener("click", () => signInWithProvider("azure"));
 }
 
 if (elements.themeToggleBtn) {
@@ -1088,6 +1121,27 @@ if (elements.adminUserForm) {
     elements.adminUserEmail.value = "";
     await loadAdminUsers();
   });
+}
+
+if (elements.logSearch) {
+  elements.logSearch.addEventListener("input", renderLogs);
+}
+
+if (elements.logExportBtn) {
+  elements.logExportBtn.addEventListener("click", () => {
+    const category = elements.logTable?.dataset.logCategory || "all";
+    const logs = loadLogs();
+    const scoped =
+      category === "all" ? logs : logs.filter((log) => log.category === category);
+    const query = elements.logSearch?.value?.trim() || "";
+    const filtered = filterLogs(scoped, query);
+    exportLogsCsv(filtered);
+    addLog("admin", "logs:export", `Exported ${filtered.length} logs`);
+  });
+}
+
+if (elements.globalSignOutBtn) {
+  elements.globalSignOutBtn.addEventListener("click", signOutEverywhere);
 }
 
 const init = () => {
