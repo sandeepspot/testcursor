@@ -81,164 +81,77 @@
         <aside class="sidebar">
           <div class="sidebar-brand">
             <span class="brand-dot"></span>
-            Expense Journal
+            <div>
+              <strong>Expense Journal</strong>
+              <span class="brand-subtitle">Finance workspace</span>
+            </div>
           </div>
           <nav class="nav-list">
-            <a href="#home">Overview</a>
-            <a href="#expenses">Expenses</a>
-            <a href="#targets">Targets</a>
-            <a href="#cloud-sync">Cloud Sync</a>
-            <a href="#admin">Admin</a>
-            <a href="#settings">Settings</a>
+            <a class="nav-item active" href="#home">Overview</a>
+            <a class="nav-item" href="#expenses">Expenses</a>
+            <a class="nav-item" href="#targets">Targets</a>
+            <a class="nav-item" href="#entries">Entries</a>
+            <a class="nav-item" href="#cloud-sync">Cloud Sync</a>
+            <a class="nav-item" href="#admin">Admin</a>
+            <a class="nav-item" href="#settings">Settings</a>
           </nav>
           <div class="sidebar-footer">
-            <p>Signed in as</p>
-            <strong id="profileEmail">-</strong>
+            <div class="profile-chip">
+              <span id="profileAvatar" class="profile-avatar">SJ</span>
+              <div>
+                <p class="profile-label">Signed in as</p>
+                <strong id="profileEmail">-</strong>
+              </div>
+            </div>
           </div>
         </aside>
 
         <main class="layout">
-      <section id="cloud-sync" class="panel">
-        <h2>Cloud Sync</h2>
-        <div class="cloud-grid">
-          <div>
-            <p id="cloudStatus" class="cloud-status">Cloud sync not configured.</p>
-            <div class="cloud-actions">
-              <label>
-                Email for magic link
-                <input type="email" id="cloudEmail" placeholder="you@example.com" />
-              </label>
-              <div class="cloud-buttons">
-                <button id="cloudSignInBtn" class="btn">Send Sign-In Link</button>
-                <button id="cloudSignOutBtn" class="btn btn-secondary" disabled>Sign Out</button>
+          <section id="home" class="panel">
+            <h2>Dashboard</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span>Total Spent (Month)</span>
+                <strong id="statMonthlyTotal">INR 0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Total Spent (All)</span>
+                <strong id="statTotal">INR 0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Average Daily</span>
+                <strong id="statAverage">INR 0</strong>
+              </div>
+              <div class="stat-card">
+                <span>Top Category</span>
+                <strong id="statTopCategory">-</strong>
+              </div>
+              <div class="stat-card">
+                <span>Budget Remaining</span>
+                <strong id="statRemaining">INR 0</strong>
               </div>
             </div>
-            <div class="mfa-panel">
-              <div class="mfa-header">
-                <h3>Two-Factor Authentication (2FA)</h3>
-                <span id="mfaStatus" class="mfa-status">Not configured.</span>
-              </div>
-              <div class="mfa-actions">
-                <button id="mfaEnrollBtn" class="btn btn-secondary">Set Up 2FA</button>
-                <button id="mfaDisableBtn" class="btn btn-secondary" disabled>Disable 2FA</button>
-              </div>
-              <div id="mfaEnrollArea" class="mfa-enroll hidden">
-                <p>Scan the QR code with Google Authenticator, Authy, or 1Password.</p>
-                <img id="mfaQr" alt="2FA QR Code" />
-                <p class="mfa-secret">Secret: <span id="mfaSecret"></span></p>
-                <label>
-                  Enter 6-digit code
-                  <input type="text" id="mfaCode" inputmode="numeric" maxlength="6" />
-                </label>
-                <button id="mfaVerifyBtn" class="btn btn-primary">Verify & Enable</button>
-              </div>
+
+            <div class="chart-wrap">
+              <canvas id="categoryChart" height="220"></canvas>
             </div>
-          </div>
-          <div class="cloud-note">
-            <h3>Safe cloud storage</h3>
-            <p>
-              Cloud sync stores your expenses in a private account so you can access them
-              from any device. We use Supabase with row-level security enabled.
-            </p>
-          </div>
-        </div>
-      </section>
+            <div id="alertBox" class="alert-box"></div>
+          </section>
 
-      <section id="adminPanel" class="panel hidden">
-        <h2>Admin Access Management</h2>
-        <div class="admin-grid">
-          <div>
-            <h3>Add or Update User</h3>
-            <form id="adminUserForm" class="form-grid">
+          <section id="expenses" class="panel">
+            <h2>Add Expense</h2>
+            <form id="expenseForm" class="form-grid">
               <label>
-                User Email
-                <input type="email" id="adminUserEmail" placeholder="user@example.com" required />
+                Date
+                <input type="date" id="expenseDate" required />
               </label>
               <label>
-                Role
-                <select id="adminUserRole">
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
-                </select>
+                Amount (INR)
+                <input type="number" id="expenseAmount" min="0" step="0.01" required />
               </label>
-              <label>
-                Active
-                <select id="adminUserActive">
-                  <option value="true">Active</option>
-                  <option value="false">Disabled</option>
-                </select>
-              </label>
-              <div class="full">
-                <button type="submit" class="btn">Save User</button>
-              </div>
-            </form>
-          </div>
-          <div>
-            <h3>Current Users</h3>
-            <ul id="adminUserList" class="list"></ul>
-          </div>
-        </div>
-      </section>
-
-      <section id="expenses" class="panel">
-        <h2>Add Expense</h2>
-        <form id="expenseForm" class="form-grid">
-          <label>
-            Date
-            <input type="date" id="expenseDate" required />
-          </label>
-          <label>
-            Amount (INR)
-            <input type="number" id="expenseAmount" min="0" step="0.01" required />
-          </label>
-          <label>
-            Category
-            <select id="expenseCategory">
-              <option>Food</option>
-              <option>Transport</option>
-              <option>Housing</option>
-              <option>Utilities</option>
-              <option>Health</option>
-              <option>Shopping</option>
-              <option>Entertainment</option>
-              <option>Education</option>
-              <option>Travel</option>
-              <option>Other</option>
-            </select>
-          </label>
-          <label class="full">
-            Description
-            <input type="text" id="expenseDescription" placeholder="Coffee, cab, rent..." />
-          </label>
-          <div class="full">
-            <button type="submit" class="btn btn-primary">Add Expense</button>
-          </div>
-        </form>
-      </section>
-
-      <section id="targets" class="panel">
-        <h2>Targets & Alerts</h2>
-        <div class="form-grid">
-          <label>
-            Monthly Budget (INR)
-            <input type="number" id="monthlyBudget" min="0" step="0.01" />
-          </label>
-          <label>
-            Alert at (% of budget)
-            <input type="number" id="budgetAlertPercent" min="0" max="100" step="1" />
-          </label>
-          <div class="full">
-            <button id="saveBudgetBtn" class="btn">Save Budget</button>
-          </div>
-        </div>
-
-        <div class="target-grid">
-          <div>
-            <h3>Category Targets</h3>
-            <form id="targetForm" class="form-grid">
               <label>
                 Category
-                <select id="targetCategory">
+                <select id="expenseCategory">
                   <option>Food</option>
                   <option>Transport</option>
                   <option>Housing</option>
@@ -251,91 +164,188 @@
                   <option>Other</option>
                 </select>
               </label>
-              <label>
-                Target (INR)
-                <input type="number" id="targetAmount" min="0" step="0.01" />
+              <label class="full">
+                Description
+                <input type="text" id="expenseDescription" placeholder="Coffee, cab, rent..." />
               </label>
               <div class="full">
-                <button type="submit" class="btn">Add/Update Target</button>
+                <button type="submit" class="btn btn-primary">Add Expense</button>
               </div>
             </form>
-          </div>
-          <div>
-            <h3>Active Targets</h3>
-            <ul id="targetList" class="list"></ul>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <section id="home" class="panel">
-        <h2>Dashboard</h2>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span>Total Spent (Month)</span>
-            <strong id="statMonthlyTotal">INR 0</strong>
-          </div>
-          <div class="stat-card">
-            <span>Total Spent (All)</span>
-            <strong id="statTotal">INR 0</strong>
-          </div>
-          <div class="stat-card">
-            <span>Average Daily</span>
-            <strong id="statAverage">INR 0</strong>
-          </div>
-          <div class="stat-card">
-            <span>Top Category</span>
-            <strong id="statTopCategory">-</strong>
-          </div>
-          <div class="stat-card">
-            <span>Budget Remaining</span>
-            <strong id="statRemaining">INR 0</strong>
-          </div>
-        </div>
+          <section id="targets" class="panel">
+            <h2>Targets & Alerts</h2>
+            <div class="form-grid">
+              <label>
+                Monthly Budget (INR)
+                <input type="number" id="monthlyBudget" min="0" step="0.01" />
+              </label>
+              <label>
+                Alert at (% of budget)
+                <input type="number" id="budgetAlertPercent" min="0" max="100" step="1" />
+              </label>
+              <div class="full">
+                <button id="saveBudgetBtn" class="btn">Save Budget</button>
+              </div>
+            </div>
 
-        <div class="chart-wrap">
-          <canvas id="categoryChart" height="220"></canvas>
-        </div>
-        <div id="alertBox" class="alert-box"></div>
-      </section>
+            <div class="target-grid">
+              <div>
+                <h3>Category Targets</h3>
+                <form id="targetForm" class="form-grid">
+                  <label>
+                    Category
+                    <select id="targetCategory">
+                      <option>Food</option>
+                      <option>Transport</option>
+                      <option>Housing</option>
+                      <option>Utilities</option>
+                      <option>Health</option>
+                      <option>Shopping</option>
+                      <option>Entertainment</option>
+                      <option>Education</option>
+                      <option>Travel</option>
+                      <option>Other</option>
+                    </select>
+                  </label>
+                  <label>
+                    Target (INR)
+                    <input type="number" id="targetAmount" min="0" step="0.01" />
+                  </label>
+                  <div class="full">
+                    <button type="submit" class="btn">Add/Update Target</button>
+                  </div>
+                </form>
+              </div>
+              <div>
+                <h3>Active Targets</h3>
+                <ul id="targetList" class="list"></ul>
+              </div>
+            </div>
+          </section>
 
-      <section id="entries" class="panel">
-        <h2>Expense Entries</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Category</th>
-                <th>Amount (INR)</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="expenseTable"></tbody>
-          </table>
-        </div>
-      </section>
-      <section id="settings" class="panel">
-        <h2>Profile & App Settings</h2>
-        <div class="settings-grid">
-          <div class="settings-card">
-            <h3>Profile</h3>
-            <p>Email: <span id="profileEmailText">-</span></p>
-            <p>Role: <span id="profileRole">User</span></p>
-          </div>
-          <div class="settings-card">
-            <h3>Appearance</h3>
-            <p>Switch between light and dark themes.</p>
-            <button id="themeToggleBtn" class="btn btn-secondary">Dark Mode</button>
-          </div>
-          <div class="settings-card">
-            <h3>Data</h3>
-            <p>Export or clear your data anytime.</p>
-            <p class="settings-hint">Use the Export and Clear buttons in the header.</p>
-          </div>
-        </div>
-      </section>
-      </main>
+          <section id="entries" class="panel">
+            <h2>Expense Entries</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Amount (INR)</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="expenseTable"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="cloud-sync" class="panel">
+            <h2>Cloud Sync</h2>
+            <div class="cloud-grid">
+              <div>
+                <p id="cloudStatus" class="cloud-status">Cloud sync not configured.</p>
+                <div class="cloud-actions">
+                  <label>
+                    Email for magic link
+                    <input type="email" id="cloudEmail" placeholder="you@example.com" />
+                  </label>
+                  <div class="cloud-buttons">
+                    <button id="cloudSignInBtn" class="btn">Send Sign-In Link</button>
+                    <button id="cloudSignOutBtn" class="btn btn-secondary" disabled>Sign Out</button>
+                  </div>
+                </div>
+                <div class="mfa-panel">
+                  <div class="mfa-header">
+                    <h3>Two-Factor Authentication (2FA)</h3>
+                    <span id="mfaStatus" class="mfa-status">Not configured.</span>
+                  </div>
+                  <div class="mfa-actions">
+                    <button id="mfaEnrollBtn" class="btn btn-secondary">Set Up 2FA</button>
+                    <button id="mfaDisableBtn" class="btn btn-secondary" disabled>Disable 2FA</button>
+                  </div>
+                  <div id="mfaEnrollArea" class="mfa-enroll hidden">
+                    <p>Scan the QR code with Google Authenticator, Authy, or 1Password.</p>
+                    <img id="mfaQr" alt="2FA QR Code" />
+                    <p class="mfa-secret">Secret: <span id="mfaSecret"></span></p>
+                    <label>
+                      Enter 6-digit code
+                      <input type="text" id="mfaCode" inputmode="numeric" maxlength="6" />
+                    </label>
+                    <button id="mfaVerifyBtn" class="btn btn-primary">Verify & Enable</button>
+                  </div>
+                </div>
+              </div>
+              <div class="cloud-note">
+                <h3>Safe cloud storage</h3>
+                <p>
+                  Cloud sync stores your expenses in a private account so you can access them
+                  from any device. We use Supabase with row-level security enabled.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section id="admin" class="panel hidden">
+            <h2>Admin Access Management</h2>
+            <div class="admin-grid">
+              <div>
+                <h3>Add or Update User</h3>
+                <form id="adminUserForm" class="form-grid">
+                  <label>
+                    User Email
+                    <input type="email" id="adminUserEmail" placeholder="user@example.com" required />
+                  </label>
+                  <label>
+                    Role
+                    <select id="adminUserRole">
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </label>
+                  <label>
+                    Active
+                    <select id="adminUserActive">
+                      <option value="true">Active</option>
+                      <option value="false">Disabled</option>
+                    </select>
+                  </label>
+                  <div class="full">
+                    <button type="submit" class="btn">Save User</button>
+                  </div>
+                </form>
+              </div>
+              <div>
+                <h3>Current Users</h3>
+                <ul id="adminUserList" class="list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <section id="settings" class="panel">
+            <h2>Profile & App Settings</h2>
+            <div class="settings-grid">
+              <div class="settings-card">
+                <h3>Profile</h3>
+                <p>Email: <span id="profileEmailText">-</span></p>
+                <p>Role: <span id="profileRole">User</span></p>
+              </div>
+              <div class="settings-card">
+                <h3>Appearance</h3>
+                <p>Switch between light and dark themes.</p>
+                <button id="themeToggleBtn" class="btn btn-secondary">Dark Mode</button>
+              </div>
+              <div class="settings-card">
+                <h3>Data</h3>
+                <p>Export or clear your data anytime.</p>
+                <p class="settings-hint">Use the Export and Clear buttons in the header.</p>
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
 

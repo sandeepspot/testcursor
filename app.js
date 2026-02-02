@@ -57,6 +57,7 @@ const elements = {
   profileEmail: document.getElementById("profileEmail"),
   profileEmailText: document.getElementById("profileEmailText"),
   profileRole: document.getElementById("profileRole"),
+  profileAvatar: document.getElementById("profileAvatar"),
   expenseForm: document.getElementById("expenseForm"),
   expenseDate: document.getElementById("expenseDate"),
   expenseAmount: document.getElementById("expenseAmount"),
@@ -91,7 +92,7 @@ const elements = {
   mfaSecret: document.getElementById("mfaSecret"),
   mfaCode: document.getElementById("mfaCode"),
   mfaVerifyBtn: document.getElementById("mfaVerifyBtn"),
-  adminPanel: document.getElementById("adminPanel"),
+  adminPanel: document.getElementById("admin"),
   adminUserForm: document.getElementById("adminUserForm"),
   adminUserEmail: document.getElementById("adminUserEmail"),
   adminUserRole: document.getElementById("adminUserRole"),
@@ -348,12 +349,24 @@ const setAuthStatus = (message, tone = "neutral") => {
     tone === "error" ? "#b91c1c" : tone === "success" ? "#15803d" : "#475569";
 };
 
+const getInitials = (email) => {
+  if (!email || email === "-") return "SJ";
+  const base = email.split("@")[0];
+  const parts = base.split(/[._-]+/).filter(Boolean);
+  const letters = parts.length ? parts : [base];
+  return letters
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+};
+
 const updateProfileDisplay = () => {
   const email = cloudState.session?.user?.email || "-";
   const role = cloudState.profile?.role || "User";
   if (elements.profileEmail) elements.profileEmail.textContent = email;
   if (elements.profileEmailText) elements.profileEmailText.textContent = email;
   if (elements.profileRole) elements.profileRole.textContent = role;
+  if (elements.profileAvatar) elements.profileAvatar.textContent = getInitials(email);
 };
 
 const switchAuthTab = (tab) => {

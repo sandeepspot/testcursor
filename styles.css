@@ -55,13 +55,16 @@ body.dark {
 
 .app-shell {
   display: block;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px 48px;
 }
 
 .app-body {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
   gap: 24px;
-  padding: 0 48px 48px;
+  padding: 0;
 }
 
 .sidebar {
@@ -84,6 +87,13 @@ body.dark {
   font-weight: 600;
 }
 
+.brand-subtitle {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .brand-dot {
   width: 10px;
   height: 10px;
@@ -96,7 +106,7 @@ body.dark {
   gap: 8px;
 }
 
-.nav-list a {
+.nav-item {
   text-decoration: none;
   color: var(--text);
   padding: 8px 12px;
@@ -104,11 +114,20 @@ body.dark {
   background: transparent;
   border: 1px solid transparent;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.nav-list a:hover {
+.nav-item:hover {
   background: var(--card-bg);
   border-color: var(--border);
+}
+
+.nav-item.active {
+  background: rgba(37, 99, 235, 0.14);
+  border-color: rgba(37, 99, 235, 0.3);
+  color: #2563eb;
 }
 
 .sidebar-footer {
@@ -126,11 +145,34 @@ body.dark {
   word-break: break-all;
 }
 
+.profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.2);
+  color: #2563eb;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+}
+
+.profile-label {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 40px 48px 24px;
+  padding: 28px;
   gap: 24px;
   flex-wrap: wrap;
 }
@@ -138,8 +180,8 @@ body.dark {
 .hero-banner {
   position: relative;
   border-radius: 24px;
-  margin: 24px 48px 0;
-  padding: 36px 40px;
+  margin: 24px 0 16px;
+  padding: 32px 36px;
   background: var(--hero-bg);
   overflow: hidden;
 }
@@ -650,12 +692,12 @@ td {
 
 @media (max-width: 720px) {
   .page-header {
-    padding: 24px;
+    padding: 22px;
   }
 
   .app-body {
     grid-template-columns: 1fr;
-    padding: 0 24px 32px;
+    padding: 0;
   }
 
   .sidebar {
@@ -664,7 +706,11 @@ td {
   }
 
   .hero-banner {
-    margin: 16px 24px 0;
-    padding: 28px;
+    margin: 16px 0 12px;
+    padding: 24px;
+  }
+
+  .app-shell {
+    padding: 0 18px 32px;
   }
 }
