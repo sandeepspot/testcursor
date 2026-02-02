@@ -422,11 +422,28 @@ const ensureProfile = async () => {
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle();
-  if (existing.error && existing.error.code !== "PGRST116") {
-    updateCloudStatus("Profile lookup failed.", "error");
-    return;
-  }
   let profile = existing.data;
+  if (existing.error && existing.error.code !== "PGRST116") {
+    console.error("Profile lookup error", existing.error);
+    const insertFallback = await cloudState.client
+      .from("profiles")
+      .insert({
+        user_id: user.id,
+        email: user.email,
+        role: "user",
+        active: true,
+      })
+      .select("*")
+      .single();
+    if (insertFallback.error) {
+      updateCloudStatus(
+        `Profile setup failed: ${insertFallback.error.message || "check RLS policies"}`,
+        "error"
+      );
+      return;
+    }
+    profile = insertFallback.data;
+  }
   if (!profile) {
     const insert = await cloudState.client
       .from("profiles")
@@ -439,7 +456,10 @@ const ensureProfile = async () => {
       .select("*")
       .single();
     if (insert.error) {
-      updateCloudStatus("Profile setup failed. Contact admin.", "error");
+      updateCloudStatus(
+        `Profile setup failed: ${insert.error.message || "check RLS policies"}`,
+        "error"
+      );
       return;
     }
     profile = insert.data;
