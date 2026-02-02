@@ -71,10 +71,6 @@
           <h1>Manage user access</h1>
           <p class="subtitle">Control who can access and manage the journal.</p>
         </div>
-        <div class="header-actions">
-          <button id="exportBtn" class="btn">Export</button>
-          <button id="clearBtn" class="btn btn-secondary">Clear All Data</button>
-        </div>
       </header>
 
       <div class="app-body">
@@ -107,7 +103,23 @@
         </aside>
 
         <main class="layout">
-          <section id="admin" class="panel hidden">
+          <div class="admin-subnav">
+            <a class="subnav-item active" href="admin.html">Users</a>
+            <a class="subnav-item" href="admin-logs.html">Logs</a>
+            <a class="subnav-item" href="admin-logs-auth.html">Auth Logs</a>
+            <a class="subnav-item" href="admin-logs-data.html">Data Logs</a>
+            <a class="subnav-item" href="admin-logs-system.html">System Logs</a>
+          </div>
+
+          <section class="panel admin-only">
+            <h2>Admin Tools</h2>
+            <div class="admin-tools">
+              <button id="exportBtn" class="btn">Export Data</button>
+              <button id="clearBtn" class="btn btn-secondary">Clear All Data</button>
+            </div>
+          </section>
+
+          <section id="admin" class="panel hidden admin-only">
             <h2>Admin Access Management</h2>
             <div class="admin-grid">
               <div>

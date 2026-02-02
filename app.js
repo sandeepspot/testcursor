@@ -1,4 +1,5 @@
 const STORAGE_KEY = "expenseJournalData";
+const LOG_KEY = "expenseJournalLogs";
 const THEME_KEY = "expenseJournalTheme";
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -35,6 +36,38 @@ const cloudState = {
   isAdmin: false,
 };
 
+const loadLogs = () => {
+  const saved = localStorage.getItem(LOG_KEY);
+  if (!saved) return [];
+  try {
+    const parsed = JSON.parse(saved);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.error("Failed to parse logs", error);
+    return [];
+  }
+};
+
+const saveLogs = (logs) => {
+  localStorage.setItem(LOG_KEY, JSON.stringify(logs));
+};
+
+const addLog = (category, action, detail) => {
+  try {
+    const logs = loadLogs();
+    logs.unshift({
+      id: crypto.randomUUID(),
+      time: new Date().toISOString(),
+      category,
+      action,
+      detail,
+    });
+    saveLogs(logs.slice(0, 500));
+  } catch (error) {
+    console.error("Failed to write log", error);
+  }
+};
+
 const elements = {
   appShell: document.getElementById("appShell"),
   authOverlay: document.getElementById("authOverlay"),
@@ -58,6 +91,7 @@ const elements = {
   profileEmailText: document.getElementById("profileEmailText"),
   profileRole: document.getElementById("profileRole"),
   profileAvatar: document.getElementById("profileAvatar"),
+  logTable: document.getElementById("logTable"),
   expenseForm: document.getElementById("expenseForm"),
   expenseDate: document.getElementById("expenseDate"),
   expenseAmount: document.getElementById("expenseAmount"),
@@ -174,6 +208,7 @@ const renderExpenses = () => {
       row.querySelector("button").addEventListener("click", () => {
         cloudState.pendingDeletes.expenses.add(expense.id);
         state.expenses = state.expenses.filter((item) => item.id !== expense.id);
+        addLog("data", "expense:remove", `${expense.category} · INR ${expense.amount}`);
         saveState();
         renderAll();
       });
@@ -199,6 +234,7 @@ const renderTargets = () => {
     item.querySelector("button").addEventListener("click", () => {
       cloudState.pendingDeletes.targets.add(target.category);
       state.targets = state.targets.filter((entry) => entry.category !== target.category);
+      addLog("data", "target:remove", target.category);
       saveState();
       renderAll();
     });
@@ -412,6 +448,7 @@ const signInWithPassword = async (email, password) => {
     setAuthStatus(result.error.message || "Sign-in failed.", "error");
     return;
   }
+  addLog("auth", "sign-in", email);
   await maybePromptMfa();
 };
 
@@ -427,11 +464,13 @@ const signUpWithPassword = async (email, password) => {
     setAuthStatus(result.error.message || "Sign-up failed.", "error");
     return;
   }
+  addLog("auth", "sign-up", email);
   setAuthStatus("Check your email to confirm your account.", "success");
 };
 
 const signInWithProvider = async (provider) => {
   if (!cloudState.client) return;
+  addLog("auth", "oauth:start", provider);
   await cloudState.client.auth.signInWithOAuth({
     provider,
     options: { redirectTo: getRedirectUrl() },
@@ -554,11 +593,12 @@ const refreshAdminStatus = async () => {
 };
 
 const toggleAdminPanel = (isAdmin) => {
-  if (!elements.adminPanel) return;
-  elements.adminPanel.classList.toggle("hidden", !isAdmin);
-  if (isAdmin) {
-    loadAdminUsers();
+  const adminBlocks = document.querySelectorAll(".admin-only");
+  adminBlocks.forEach((block) => block.classList.toggle("hidden", !isAdmin));
+  if (elements.adminPanel) {
+    elements.adminPanel.classList.toggle("hidden", !isAdmin);
   }
+  if (isAdmin) loadAdminUsers();
 };
 
 const loadAdminUsers = async () => {
@@ -623,6 +663,7 @@ const enrollMfa = async () => {
     updateCloudStatus("2FA enrollment failed. Try again.", "error");
     return;
   }
+  addLog("auth", "mfa:enroll", "TOTP enrollment started");
   const { id, totp } = result.data;
   cloudState.mfa.enrolledFactorId = id;
   cloudState.mfa.challengeId = null;
@@ -660,6 +701,7 @@ const verifyMfa = async () => {
     updateCloudStatus("2FA verification failed. Check your code.", "error");
     return;
   }
+  addLog("auth", "mfa:verify", "TOTP enabled");
   if (elements.mfaEnrollArea) elements.mfaEnrollArea.classList.add("hidden");
   if (elements.mfaCode) elements.mfaCode.value = "";
   await refreshMfaStatus();
@@ -674,6 +716,7 @@ const disableMfa = async () => {
     updateCloudStatus("Unable to disable 2FA.", "error");
     return;
   }
+  addLog("auth", "mfa:disable", "TOTP disabled");
   cloudState.mfa.enrolledFactorId = null;
   setMfaStatus("Not enabled", "warning");
   if (elements.mfaDisableBtn) elements.mfaDisableBtn.disabled = true;
@@ -769,9 +812,11 @@ const syncToCloud = async () => {
     }
 
     updateCloudStatus("Cloud sync complete.", "success");
+    addLog("system", "cloud:sync", "Cloud sync completed");
   } catch (error) {
     console.error("Cloud sync failed", error);
     updateCloudStatus("Cloud sync failed. Try again.", "error");
+    addLog("system", "cloud:sync-failed", "Cloud sync error");
   } finally {
     cloudState.syncing = false;
   }
@@ -810,12 +855,33 @@ const renderChart = () => {
   });
 };
 
+const renderLogs = () => {
+  if (!elements.logTable) return;
+  const category = elements.logTable.dataset.logCategory || "all";
+  const logs = loadLogs();
+  const filtered =
+    category === "all" ? logs : logs.filter((log) => log.category === category);
+
+  elements.logTable.innerHTML = "";
+  filtered.slice(0, 200).forEach((log) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${new Date(log.time).toLocaleString()}</td>
+      <td>${log.category}</td>
+      <td>${log.action}</td>
+      <td>${log.detail || "-"}</td>
+    `;
+    elements.logTable.appendChild(row);
+  });
+};
+
 const renderAll = () => {
   renderExpenses();
   renderTargets();
   renderStats();
   renderAlerts();
   renderChart();
+  renderLogs();
 };
 
 if (elements.expenseForm) {
@@ -831,6 +897,7 @@ if (elements.expenseForm) {
       description: elements.expenseDescription.value.trim(),
     };
     state.expenses.push(expense);
+    addLog("data", "expense:add", `${expense.category} · INR ${expense.amount}`);
     saveState();
     elements.expenseAmount.value = "";
     elements.expenseDescription.value = "";
@@ -847,8 +914,10 @@ if (elements.targetForm) {
     const existing = state.targets.find((target) => target.category === category);
     if (existing) {
       existing.amount = amount;
+      addLog("data", "target:update", `${category} · INR ${amount}`);
     } else {
       state.targets.push({ category, amount });
+      addLog("data", "target:add", `${category} · INR ${amount}`);
     }
     elements.targetAmount.value = "";
     saveState();
@@ -862,6 +931,7 @@ if (elements.saveBudgetBtn) {
     const alertPercent = parseFloat(elements.budgetAlertPercent.value) || 0;
     state.budget.monthly = monthly;
     state.budget.alertPercent = Math.min(Math.max(alertPercent, 0), 100);
+    addLog("data", "budget:update", `Monthly INR ${monthly}`);
     saveState();
     renderAll();
   });
@@ -876,6 +946,7 @@ if (elements.exportBtn) {
     link.href = url;
     link.download = "expense-journal-export.json";
     link.click();
+    addLog("data", "export", "Expense journal export downloaded");
     URL.revokeObjectURL(url);
   });
 }
@@ -888,6 +959,7 @@ if (elements.clearBtn) {
     state.expenses = [];
     state.targets = [];
     state.budget = { monthly: 0, alertPercent: 80 };
+    addLog("data", "clear", "All expenses and targets cleared");
     cloudState.pendingDeletes.expenses = new Set(expenseIds);
     cloudState.pendingDeletes.targets = new Set(targetCategories);
     saveState();
@@ -917,6 +989,7 @@ if (elements.cloudSignInBtn) {
       return;
     }
     updateCloudStatus("Magic link sent. Check your email to finish sign-in.", "success");
+    addLog("auth", "magic-link", email);
   });
 }
 
@@ -925,6 +998,7 @@ if (elements.cloudSignOutBtn) {
     if (!cloudState.client) return;
     await cloudState.client.auth.signOut();
     updateCloudStatus("Signed out from cloud sync.");
+    addLog("auth", "sign-out", "User signed out");
     cloudState.mfa.pendingLogin = false;
     cloudState.mfa.pendingFactorId = null;
   });
@@ -1009,6 +1083,7 @@ if (elements.adminUserForm) {
       updateCloudStatus("Unable to update user.", "error");
       return;
     }
+    addLog("admin", "user:update", `${email} · ${role} · ${active ? "active" : "disabled"}`);
     updateCloudStatus("User updated.", "success");
     elements.adminUserEmail.value = "";
     await loadAdminUsers();
