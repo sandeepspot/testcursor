@@ -21,6 +21,32 @@
 
     <main class="layout">
       <section class="panel">
+        <h2>Cloud Sync</h2>
+        <div class="cloud-grid">
+          <div>
+            <p id="cloudStatus" class="cloud-status">Cloud sync not configured.</p>
+            <div class="cloud-actions">
+              <label>
+                Email for magic link
+                <input type="email" id="cloudEmail" placeholder="you@example.com" />
+              </label>
+              <div class="cloud-buttons">
+                <button id="cloudSignInBtn" class="btn">Send Sign-In Link</button>
+                <button id="cloudSignOutBtn" class="btn btn-secondary" disabled>Sign Out</button>
+              </div>
+            </div>
+          </div>
+          <div class="cloud-note">
+            <h3>Safe cloud storage</h3>
+            <p>
+              Cloud sync stores your expenses in a private account so you can access them
+              from any device. We use Supabase with row-level security enabled.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
         <h2>Add Expense</h2>
         <form id="expenseForm" class="form-grid">
           <label>
@@ -157,6 +183,8 @@
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

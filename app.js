@@ -14,6 +14,17 @@ const state = {
   targets: [],
 };
 
+const cloudState = {
+  client: null,
+  session: null,
+  configured: false,
+  syncing: false,
+  pendingDeletes: {
+    expenses: new Set(),
+    targets: new Set(),
+  },
+};
+
 const elements = {
   expenseForm: document.getElementById("expenseForm"),
   expenseDate: document.getElementById("expenseDate"),
@@ -37,6 +48,10 @@ const elements = {
   alertBox: document.getElementById("alertBox"),
   exportBtn: document.getElementById("exportBtn"),
   clearBtn: document.getElementById("clearBtn"),
+  cloudStatus: document.getElementById("cloudStatus"),
+  cloudEmail: document.getElementById("cloudEmail"),
+  cloudSignInBtn: document.getElementById("cloudSignInBtn"),
+  cloudSignOutBtn: document.getElementById("cloudSignOutBtn"),
 };
 
 const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -56,6 +71,7 @@ const loadState = () => {
 
 const saveState = () => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  queueCloudSync();
 };
 
 const formatCurrency = (value) => currencyFormatter.format(value || 0);
@@ -90,6 +106,7 @@ const renderExpenses = () => {
         </td>
       `;
       row.querySelector("button").addEventListener("click", () => {
+        cloudState.pendingDeletes.expenses.add(expense.id);
         state.expenses = state.expenses.filter((item) => item.id !== expense.id);
         saveState();
         renderAll();
@@ -113,6 +130,7 @@ const renderTargets = () => {
       <button class="btn btn-secondary" data-category="${target.category}">Remove</button>
     `;
     item.querySelector("button").addEventListener("click", () => {
+      cloudState.pendingDeletes.targets.add(target.category);
       state.targets = state.targets.filter((entry) => entry.category !== target.category);
       saveState();
       renderAll();
@@ -184,6 +202,153 @@ const renderAlerts = () => {
     entry.textContent = alert.message;
     elements.alertBox.appendChild(entry);
   });
+};
+
+const updateCloudStatus = (message, tone = "neutral") => {
+  if (!elements.cloudStatus) return;
+  elements.cloudStatus.textContent = message;
+  elements.cloudStatus.style.color =
+    tone === "error" ? "#b91c1c" : tone === "success" ? "#15803d" : "#1f2937";
+};
+
+const getSupabaseConfig = () => {
+  const config = window.SUPABASE_CONFIG;
+  if (!config || !config.url || !config.anonKey) return null;
+  if (config.url.includes("your-project") || config.anonKey.includes("your-anon-key")) {
+    return null;
+  }
+  return config;
+};
+
+const initSupabase = async () => {
+  if (!window.supabase || !elements.cloudStatus) return;
+  const config = getSupabaseConfig();
+  if (!config) {
+    updateCloudStatus("Cloud sync not configured. Update config.js to enable.");
+    return;
+  }
+  cloudState.configured = true;
+  cloudState.client = window.supabase.createClient(config.url, config.anonKey);
+  updateCloudStatus("Cloud sync ready. Sign in to enable.");
+
+  const sessionResult = await cloudState.client.auth.getSession();
+  cloudState.session = sessionResult.data.session;
+  handleSessionChange();
+
+  cloudState.client.auth.onAuthStateChange((_event, session) => {
+    cloudState.session = session;
+    handleSessionChange();
+  });
+};
+
+const handleSessionChange = () => {
+  if (!cloudState.configured) return;
+  if (cloudState.session?.user) {
+    updateCloudStatus(`Signed in as ${cloudState.session.user.email}`, "success");
+    elements.cloudSignOutBtn.disabled = false;
+    pullFromCloud();
+  } else {
+    updateCloudStatus("Not signed in. Use the email link to enable cloud sync.");
+    elements.cloudSignOutBtn.disabled = true;
+  }
+};
+
+const pullFromCloud = async () => {
+  if (!cloudState.session?.user) return;
+  const userId = cloudState.session.user.id;
+  const [expensesResult, targetsResult, budgetResult] = await Promise.all([
+    cloudState.client.from("expenses").select("*").eq("user_id", userId),
+    cloudState.client.from("targets").select("*").eq("user_id", userId),
+    cloudState.client.from("budgets").select("*").eq("user_id", userId).limit(1),
+  ]);
+
+  if (expensesResult.error || targetsResult.error || budgetResult.error) {
+    updateCloudStatus("Cloud sync failed. Check Supabase tables and policies.", "error");
+    return;
+  }
+
+  state.expenses = (expensesResult.data || []).map((expense) => ({
+    id: expense.id,
+    date: expense.date,
+    amount: expense.amount,
+    category: expense.category,
+    description: expense.description || "",
+  }));
+  state.targets = (targetsResult.data || []).map((target) => ({
+    category: target.category,
+    amount: target.amount,
+  }));
+  const budget = budgetResult.data?.[0];
+  state.budget = {
+    monthly: budget?.monthly || 0,
+    alertPercent: budget?.alert_percent ?? 80,
+  };
+
+  saveState();
+  renderAll();
+};
+
+const queueCloudSync = () => {
+  if (!cloudState.configured || !cloudState.session?.user) return;
+  if (cloudState.syncing) return;
+  cloudState.syncing = true;
+  setTimeout(syncToCloud, 600);
+};
+
+const syncToCloud = async () => {
+  if (!cloudState.session?.user) {
+    cloudState.syncing = false;
+    return;
+  }
+
+  const userId = cloudState.session.user.id;
+  const expensesPayload = state.expenses.map((expense) => ({
+    ...expense,
+    user_id: userId,
+  }));
+  const targetsPayload = state.targets.map((target) => ({
+    ...target,
+    user_id: userId,
+  }));
+  const budgetPayload = {
+    user_id: userId,
+    monthly: state.budget.monthly || 0,
+    alert_percent: state.budget.alertPercent ?? 80,
+  };
+
+  try {
+    if (expensesPayload.length) {
+      await cloudState.client.from("expenses").upsert(expensesPayload, { onConflict: "id" });
+    }
+    if (targetsPayload.length) {
+      await cloudState.client.from("targets").upsert(targetsPayload, {
+        onConflict: "user_id,category",
+      });
+    }
+    await cloudState.client.from("budgets").upsert(budgetPayload, { onConflict: "user_id" });
+
+    if (cloudState.pendingDeletes.expenses.size) {
+      const ids = Array.from(cloudState.pendingDeletes.expenses);
+      await cloudState.client.from("expenses").delete().in("id", ids).eq("user_id", userId);
+      cloudState.pendingDeletes.expenses.clear();
+    }
+    if (cloudState.pendingDeletes.targets.size) {
+      const categories = Array.from(cloudState.pendingDeletes.targets);
+      await cloudState.client
+        .from("targets")
+        .delete()
+        .in("category", categories)
+        .eq("user_id", userId);
+      cloudState.pendingDeletes.targets.clear();
+    }
+
+    updateCloudStatus("Cloud sync complete.", "success");
+  } catch (error) {
+    console.error("Cloud sync failed", error);
+    updateCloudStatus("Cloud sync failed. Try again.", "error");
+  } finally {
+    cloudState.syncing = false;
+  }
 };
 
 const renderChart = () => {
@@ -282,17 +447,49 @@ elements.exportBtn.addEventListener("click", () => {
 
 elements.clearBtn.addEventListener("click", () => {
   if (!confirm("Clear all expenses, targets, and budget settings?")) return;
+  const expenseIds = state.expenses.map((item) => item.id);
+  const targetCategories = state.targets.map((item) => item.category);
   state.expenses = [];
   state.targets = [];
   state.budget = { monthly: 0, alertPercent: 80 };
+  cloudState.pendingDeletes.expenses = new Set(expenseIds);
+  cloudState.pendingDeletes.targets = new Set(targetCategories);
   saveState();
   renderAll();
+});
+
+elements.cloudSignInBtn.addEventListener("click", async () => {
+  if (!cloudState.client) {
+    updateCloudStatus("Cloud sync not configured. Update config.js first.", "error");
+    return;
+  }
+  const email = elements.cloudEmail.value.trim();
+  if (!email) {
+    updateCloudStatus("Enter an email to receive a sign-in link.", "error");
+    return;
+  }
+  const result = await cloudState.client.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href },
+  });
+  if (result.error) {
+    updateCloudStatus("Sign-in failed. Check the email and try again.", "error");
+    return;
+  }
+  updateCloudStatus("Magic link sent. Check your email to finish sign-in.", "success");
+});
+
+elements.cloudSignOutBtn.addEventListener("click", async () => {
+  if (!cloudState.client) return;
+  await cloudState.client.auth.signOut();
+  updateCloudStatus("Signed out from cloud sync.");
 });
 
 const init = () => {
   loadState();
   elements.expenseDate.value = todayIso();
   renderAll();
+  initSupabase();
 };
 
 init();

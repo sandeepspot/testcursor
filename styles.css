@@ -99,6 +99,63 @@ body {
   padding: 12px 48px 48px;
 }
 
+.cloud-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.cloud-status {
+  margin-top: 0;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.cloud-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.cloud-actions label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #5c6475;
+}
+
+.cloud-actions input {
+  border: 1px solid #d6d9e0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.cloud-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cloud-note {
+  padding: 16px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+.cloud-note h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.cloud-note p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .panel {
   background: #fff;
   border-radius: 16px;
